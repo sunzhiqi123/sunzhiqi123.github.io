@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="18个python的高效编程技巧">
+<meta itemprop="description" content="#18个python的高效编程技巧
+01 交换变量
+   a=3
+b=6
+   这个情况如果要交换变量在c&#43;&#43;中，肯定需要一个空变量。但是python不需要，只需一行，大家看清楚了
+   a,b=b,a
+print(a)&gt;&gt;&gt;6
+ptint(b)&gt;&gt;&gt;5
+   02 字典推导(Dictionary comprehensions)和集合推导(Set comprehensions) 大多数的Python程序员都知道且使用过列表推导(list comprehensions)。如果你对list comprehensions概念不是很熟悉——一个list comprehension就是一个更简短、简洁的创建一个list的方法。
+   some_list = [1, 2, 3, 4, 5]
+another_list = [ x &#43; 1 for x in some_list ]
+another_list [2, 3, 4, 5, 6]
+   自从python 3.1 起，我们可以用同样的语法来创建集合和字典表：
+   Set Comprehensions some_list = [1, 2, 3, 4, 5, 2, 5, 1, 4, 8]">
+
+
+<meta itemprop="datePublished" content="2018-04-05T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2018-04-05T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="672">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="18个python的高效编程技巧" />
+<meta property="og:description" content="#18个python的高效编程技巧
+01 交换变量
+   a=3
+b=6
+   这个情况如果要交换变量在c&#43;&#43;中，肯定需要一个空变量。但是python不需要，只需一行，大家看清楚了
+   a,b=b,a
+print(a)&gt;&gt;&gt;6
+ptint(b)&gt;&gt;&gt;5
+   02 字典推导(Dictionary comprehensions)和集合推导(Set comprehensions) 大多数的Python程序员都知道且使用过列表推导(list comprehensions)。如果你对list comprehensions概念不是很熟悉——一个list comprehension就是一个更简短、简洁的创建一个list的方法。
+   some_list = [1, 2, 3, 4, 5]
+another_list = [ x &#43; 1 for x in some_list ]
+another_list [2, 3, 4, 5, 6]
+   自从python 3.1 起，我们可以用同样的语法来创建集合和字典表：
+   Set Comprehensions some_list = [1, 2, 3, 4, 5, 2, 5, 1, 4, 8]" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/jiqiao/" />
+<meta property="article:published_time" content="2018-04-05T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2018-04-05T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="18个python的高效编程技巧"/>
+<meta name="twitter:description" content="#18个python的高效编程技巧
+01 交换变量
+   a=3
+b=6
+   这个情况如果要交换变量在c&#43;&#43;中，肯定需要一个空变量。但是python不需要，只需一行，大家看清楚了
+   a,b=b,a
+print(a)&gt;&gt;&gt;6
+ptint(b)&gt;&gt;&gt;5
+   02 字典推导(Dictionary comprehensions)和集合推导(Set comprehensions) 大多数的Python程序员都知道且使用过列表推导(list comprehensions)。如果你对list comprehensions概念不是很熟悉——一个list comprehension就是一个更简短、简洁的创建一个list的方法。
+   some_list = [1, 2, 3, 4, 5]
+another_list = [ x &#43; 1 for x in some_list ]
+another_list [2, 3, 4, 5, 6]
+   自从python 3.1 起，我们可以用同样的语法来创建集合和字典表：
+   Set Comprehensions some_list = [1, 2, 3, 4, 5, 2, 5, 1, 4, 8]"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>18个python的高效编程技巧</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Apr 5, 2018</span></div>
+				<h1>18个python的高效编程技巧</h1>
+			</header>
+			<div class="content">
+				
+
+<p>#18个python的高效编程技巧</p>
+
+<p>01 交换变量</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<p>a=3</p>
+
+<p>b=6</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>这个情况如果要交换变量在c++中，肯定需要一个空变量。但是python不需要，只需一行，大家看清楚了</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<p>a,b=b,a</p>
+
+<p>print(a)&gt;&gt;&gt;6</p>
+
+<p>ptint(b)&gt;&gt;&gt;5</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>02 字典推导(Dictionary comprehensions)和集合推导(Set comprehensions)
+大多数的Python程序员都知道且使用过列表推导(list comprehensions)。如果你对list comprehensions概念不是很熟悉——一个list comprehension就是一个更简短、简洁的创建一个list的方法。</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<p>some_list = [1, 2, 3, 4, 5]</p>
+
+<p>another_list = [ x + 1 for x in some_list ]</p>
+
+<p>another_list
+[2, 3, 4, 5, 6]</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>自从python 3.1 起，我们可以用同样的语法来创建集合和字典表：</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<h1 id="set-comprehensions">Set Comprehensions<a href="#set-comprehensions" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>some_list = [1, 2, 3, 4, 5, 2, 5, 1, 4, 8]</p>
+
+<p>even_set = { x for x in some_list if x % 2 == 0 }</p>
+
+<p>even_set
+set([8, 2, 4])</p>
+
+<h1 id="dict-comprehensions">Dict Comprehensions<a href="#dict-comprehensions" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>d = { x: x % 2 == 0 for x in range(1, 11) }</p>
+
+<p>d
+{1: False, 2: True, 3: False, 4: True, 5: False, 6: True, 7: False, 8: True, 9: False, 10: True}</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>在第一个例子里，我们以some_list为基础，创建了一个具有不重复元素的集合，而且集合里只包含偶数。而在字典表的例子里，我们创建了一个key是不重复的1到10之间的整数，value是布尔型，用来指示key是否是偶数。</p>
+
+<p>这里另外一个值得注意的事情是集合的字面量表示法。我们可以简单的用这种方法创建一个集合：</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<p>my_set = {1, 2, 1, 2, 3, 4}</p>
+
+<p>my_set
+set([1, 2, 3, 4])</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>而不需要使用内置函数set()。</p>
+
+<p>03 计数时使用Counter计数对象。
+这听起来显而易见，但经常被人忘记。对于大多数程序员来说，数一个东西是一项很常见的任务，而且在大多数情况下并不是很有挑战性的事情——这里有几种方法能更简单的完成这种任务。</p>
+
+<p>Python的collections类库里有个内置的dict类的子类，是专门来干这种事情的：</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<p>from collections import Counter
+c = Counter( hello world )</p>
+
+<p>c
+Counter({ l : 3,  o : 2,    : 1,  e : 1,  d : 1,  h : 1,  r : 1,  w : 1})</p>
+
+<p>c.most_common(2)
+[( l , 3), ( o , 2)]</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>04 漂亮的打印出JSON
+JSON是一种非常好的数据序列化的形式，被如今的各种API和web service大量的使用。使用python内置的json处理，可以使JSON串具有一定的可读性，但当遇到大型数据时，它表现成一个很长的、连续的一行时，人的肉眼就很难观看了。</p>
+
+<p>为了能让JSON数据表现的更友好，我们可以使用indent参数来输出漂亮的JSON。当在控制台交互式编程或做日志时，这尤其有用：</p>
+
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import json</p>
+
+<p>print(json.dumps(data))  # No indention
+{&ldquo;status&rdquo;: &ldquo;OK&rdquo;, &ldquo;count&rdquo;: 2, &ldquo;results&rdquo;: [{&ldquo;age&rdquo;: 27, &ldquo;name&rdquo;: &ldquo;Oz&rdquo;, &ldquo;lactose_intolerant&rdquo;: true}, {&ldquo;age&rdquo;: 29, &ldquo;name&rdquo;: &ldquo;Joe&rdquo;, &ldquo;lactose_intolerant&rdquo;: false}]}</p>
+
+<p>print(json.dumps(data, indent=2))  # With indention</p>
+</blockquote>
+</blockquote>
+</blockquote>
+
+<p>{
+  &ldquo;status&rdquo;: &ldquo;OK&rdquo;,
+  &ldquo;count&rdquo;: 2,
+  &ldquo;results&rdquo;: [</p>
+
+<pre><code>{
+  &quot;age&quot;: 27,
+  &quot;name&quot;: &quot;Oz&quot;,
+
+  &quot;lactose_intolerant&quot;: true
+},
+{
+  &quot;age&quot;: 29,
+
+  &quot;name&quot;: &quot;Joe&quot;,
+  &quot;lactose_intolerant&quot;: false
+}
+</code></pre>
+
+<p>]</p>
+
+<p>}</p>
+
+<p>同样，使用内置的pprint模块，也可以让其它任何东西打印输出的更漂亮。</p>
+
+<p>05 解决FizzBuzz</p>
+
+<p>前段时间Jeff Atwood 推广了一个简单的编程练习叫FizzBuzz，问题引用如下：</p>
+
+<p>写一个程序，打印数字1到100，3的倍数打印“Fizz”来替换这个数，5的倍数打印“Buzz”，对于既是3的倍数又是5的倍数的数字打印“FizzBuzz”。</p>
+
+<p>这里就是一个简短的，有意思的方法解决这个问题：</p>
+
+<p>for x in range(1,101):
+    print&rdquo;fizz&rdquo;[x%3*len( fizz )::]+&ldquo;buzz&rdquo;[x%5*len( buzz )::] or x</p>
+
+<p>06 if 语句在行内</p>
+
+<p>print &ldquo;Hello&rdquo; if True else &ldquo;World&rdquo;
+&gt;&gt;&gt; Hello</p>
+
+<p>07 连接</p>
+
+<p>下面的最后一种方式在绑定两个不同类型的对象时显得很cool。</p>
+
+<p>nfc = [&ldquo;Packers&rdquo;, &ldquo;49ers&rdquo;]
+afc = [&ldquo;Ravens&rdquo;, &ldquo;Patriots&rdquo;]
+print nfc + afc
+&gt;&gt;&gt; [ Packers ,  49ers ,  Ravens ,  Patriots ]</p>
+
+<p>print str(1) + &ldquo; world&rdquo;
+&gt;&gt;&gt; 1 world</p>
+
+<p>print <code>1</code> + &ldquo; world&rdquo;
+&gt;&gt;&gt; 1 world</p>
+
+<p>print 1, &ldquo;world&rdquo;
+&gt;&gt;&gt; 1 world
+print nfc, 1
+&gt;&gt;&gt; [ Packers ,  49ers ] 1</p>
+
+<p>08 数值比较</p>
+
+<p>这是我见过诸多语言中很少有的如此棒的简便法</p>
+
+<p>x = 2
+if 3 &gt; x &gt; 1:
+   print x
+&gt;&gt;&gt; 2
+if 1 &lt; x &gt; 0:
+   print x
+&gt;&gt;&gt; 2</p>
+
+<p>09 同时迭代两个列表</p>
+
+<p>nfc = [&ldquo;Packers&rdquo;, &ldquo;49ers&rdquo;]
+afc = [&ldquo;Ravens&rdquo;, &ldquo;Patriots&rdquo;]
+for teama, teamb in zip(nfc, afc):
+     print teama + &ldquo; vs. &rdquo; + teamb
+&gt;&gt;&gt; Packers vs. Ravens
+&gt;&gt;&gt; 49ers vs. Patriots</p>
+
+<p>10 带索引的列表迭代</p>
+
+<p>teams = [&ldquo;Packers&rdquo;, &ldquo;49ers&rdquo;, &ldquo;Ravens&rdquo;, &ldquo;Patriots&rdquo;]
+for index, team in enumerate(teams):
+    print index, team
+&gt;&gt;&gt; 0 Packers
+&gt;&gt;&gt; 1 49ers
+&gt;&gt;&gt; 2 Ravens
+&gt;&gt;&gt; 3 Patriots</p>
+
+<p>11 列表推导式</p>
+
+<p>已知一个列表，我们可以刷选出偶数列表方法：</p>
+
+<p>numbers = [1,2,3,4,5,6]
+even = []
+for number in numbers:
+    if number%2 == 0:
+        even.append(number)</p>
+
+<p>转变成如下：</p>
+
+<p>numbers = [1,2,3,4,5,6]
+even = [number for number in numbers if number%2 == 0]</p>
+
+<p>12 字典推导</p>
+
+<p>和列表推导类似，字典可以做同样的工作：</p>
+
+<p>teams = [&ldquo;Packers&rdquo;, &ldquo;49ers&rdquo;, &ldquo;Ravens&rdquo;, &ldquo;Patriots&rdquo;]
+print {key: value for value, key in enumerate(teams)}
+&gt;&gt;&gt; { 49ers : 1,  Ravens : 2,  Patriots : 3,  Packers : 0}</p>
+
+<p>13 初始化列表的值</p>
+
+<p>items = [0]*3
+print items
+&gt;&gt;&gt; [0,0,0]</p>
+
+<p>14 列表转换为字符串</p>
+
+<p>teams = [&ldquo;Packers&rdquo;, &ldquo;49ers&rdquo;, &ldquo;Ravens&rdquo;, &ldquo;Patriots&rdquo;]
+print &ldquo;, &ldquo;.join(teams)
+&gt;&gt;&gt;  Packers, 49ers, Ravens, Patriots</p>
+
+<p>15 从字典中获取元素</p>
+
+<p>我承认try/except代码并不雅致，不过这里有一种简单方法，尝试在字典中找key，如果没有找到对应的alue将用第二个参数设为其变量值。</p>
+
+<p>data = { user : 1,  name :  Max ,  three : 4}
+try:
+   is_admin = data[ admin ]
+except KeyError:
+   is_admin = False</p>
+
+<p>替换成这样</p>
+
+<p>data = { user : 1,  name :  Max ,  three : 4}
+is_admin = data.get( admin , False)</p>
+
+<p>16 获取列表的子集</p>
+
+<p>有时，你只需要列表中的部分元素，这里是一些获取列表子集的方法。</p>
+
+<p>x = [1,2,3,4,5,6]
+#前3个
+print x[:3]
+&gt;&gt;&gt; [1,2,3]
+#中间4个
+print x[1:5]
+&gt;&gt;&gt; [2,3,4,5]
+#最后3个
+print x[3:]
+&gt;&gt;&gt; [4,5,6]
+#奇数项
+print x[::2]
+&gt;&gt;&gt; [1,3,5]
+#偶数项
+print x[1::2]
+&gt;&gt;&gt; [2,4,6]</p>
+
+<p>除了python内置的数据类型外，在collection模块同样还包括一些特别的用例，在有些场合Counter非常实用。如果你参加过在这一年的Facebook HackerCup，你甚至也能找到他的实用之处。</p>
+
+<p>from collections import Counter
+print Counter(&ldquo;hello&rdquo;)
+&gt;&gt;&gt; Counter({ l : 2,  h : 1,  e : 1,  o : 1})</p>
+
+<p>17 迭代工具</p>
+
+<p>和collections库一样，还有一个库叫itertools，对某些问题真能高效地解决。其中一个用例是查找所有组合，他能告诉你在一个组中元素的所有不能的组合方式</p>
+
+<p>from itertools import combinations
+teams = [&ldquo;Packers&rdquo;, &ldquo;49ers&rdquo;, &ldquo;Ravens&rdquo;, &ldquo;Patriots&rdquo;]
+for game in combinations(teams, 2):
+    print game
+&gt;&gt;&gt; ( Packers ,  49ers )
+&gt;&gt;&gt; ( Packers ,  Ravens )
+&gt;&gt;&gt; ( Packers ,  Patriots )
+&gt;&gt;&gt; ( 49ers ,  Ravens )
+&gt;&gt;&gt; ( 49ers ,  Patriots )
+&gt;&gt;&gt; ( Ravens ,  Patriots )</p>
+
+<p>18 False == True</p>
+
+<p>比起实用技术来说这是一个很有趣的事，在python中，True和False是全局变量，因此：</p>
+
+<p>False = True
+if False:
+   print &ldquo;Hello&rdquo;
+else:
+   print &ldquo;World&rdquo;
+&gt;&gt;&gt; Hello</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>672 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2018-04-05 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/django/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>django 简介</span>
+			</a>
+			<a class="prev-post" href="/posts/erweima/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>python 二维码</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

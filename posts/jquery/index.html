@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="jquery">
+<meta itemprop="description" content="#jquery鼠标键盘悬停事件，形变动画和淡入淡出 鼠标和键盘悬停
+&lt;!DOCTYPE html&gt;&lt;br/&gt; &lt;html lang=&quot;en&quot;&gt;&lt;br/&gt; &lt;head&gt;&lt;br/&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;title&gt;鼠标悬停&lt;/title&gt; &lt;script type=&quot;text/javascript&quot; src=&#39;./js/jquery.min.js&#39;&gt;&lt;/script&gt; &lt;script type=&#39;text/javascript&#39;&gt; $(function(){ //监听鼠标悬停事件 $(&quot;#b&quot;).mouseover(function(){ //用类选择器修改元素的样式 $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;pink&quot;) $(&quot;.c&quot;).css(&quot;color&quot;,&quot;green&quot;) $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;30px&quot;) }) }); // 用类选择器修改鼠标离开事件 $(function(){ //监听鼠标悬停事件 $(&quot;#b&quot;).mouseout(function(){ //用类选择器修改元素的样式 $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;white&quot;) $(&quot;.c&quot;).css(&quot;color&quot;,&quot;red&quot;) $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;16px&quot;) }) }); // 用类选择器修改鼠标离开事件 $(function(){ $(&quot;#z&quot;).mouseover(function(){ $(&quot;#z&quot;).css(&quot;background-color&quot;,&quot;pink&quot;) }); }); &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&quot;c&quot;&gt;风萧萧兮易水寒，壮士一去兮不复返&lt;/div&gt;&lt;br/&gt;&lt;br/&gt; &lt;input type=&quot;button&quot; id=&quot;z&quot; value=&quot;悬停变色&quot;&gt;&lt;br/&gt;&lt;br/&gt; &lt;img id=&quot;b&quot; src=&quot;./img/微信图片_20181121185908.jpg&quot; /&gt;&lt;br/&gt;&lt;br/&gt; &lt;/body&gt; &lt;/html&gt;  形变动画
+&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;title&gt;animate 动画&lt;/title&gt; &lt;script type=&quot;text/javascript&quot; src=&quot;.">
+
+
+<meta itemprop="datePublished" content="2018-02-01T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2018-02-01T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="188">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="jquery" />
+<meta property="og:description" content="#jquery鼠标键盘悬停事件，形变动画和淡入淡出 鼠标和键盘悬停
+&lt;!DOCTYPE html&gt;&lt;br/&gt; &lt;html lang=&quot;en&quot;&gt;&lt;br/&gt; &lt;head&gt;&lt;br/&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;title&gt;鼠标悬停&lt;/title&gt; &lt;script type=&quot;text/javascript&quot; src=&#39;./js/jquery.min.js&#39;&gt;&lt;/script&gt; &lt;script type=&#39;text/javascript&#39;&gt; $(function(){ //监听鼠标悬停事件 $(&quot;#b&quot;).mouseover(function(){ //用类选择器修改元素的样式 $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;pink&quot;) $(&quot;.c&quot;).css(&quot;color&quot;,&quot;green&quot;) $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;30px&quot;) }) }); // 用类选择器修改鼠标离开事件 $(function(){ //监听鼠标悬停事件 $(&quot;#b&quot;).mouseout(function(){ //用类选择器修改元素的样式 $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;white&quot;) $(&quot;.c&quot;).css(&quot;color&quot;,&quot;red&quot;) $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;16px&quot;) }) }); // 用类选择器修改鼠标离开事件 $(function(){ $(&quot;#z&quot;).mouseover(function(){ $(&quot;#z&quot;).css(&quot;background-color&quot;,&quot;pink&quot;) }); }); &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&quot;c&quot;&gt;风萧萧兮易水寒，壮士一去兮不复返&lt;/div&gt;&lt;br/&gt;&lt;br/&gt; &lt;input type=&quot;button&quot; id=&quot;z&quot; value=&quot;悬停变色&quot;&gt;&lt;br/&gt;&lt;br/&gt; &lt;img id=&quot;b&quot; src=&quot;./img/微信图片_20181121185908.jpg&quot; /&gt;&lt;br/&gt;&lt;br/&gt; &lt;/body&gt; &lt;/html&gt;  形变动画
+&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;title&gt;animate 动画&lt;/title&gt; &lt;script type=&quot;text/javascript&quot; src=&quot;." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/jquery/" />
+<meta property="article:published_time" content="2018-02-01T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2018-02-01T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="jquery"/>
+<meta name="twitter:description" content="#jquery鼠标键盘悬停事件，形变动画和淡入淡出 鼠标和键盘悬停
+&lt;!DOCTYPE html&gt;&lt;br/&gt; &lt;html lang=&quot;en&quot;&gt;&lt;br/&gt; &lt;head&gt;&lt;br/&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;title&gt;鼠标悬停&lt;/title&gt; &lt;script type=&quot;text/javascript&quot; src=&#39;./js/jquery.min.js&#39;&gt;&lt;/script&gt; &lt;script type=&#39;text/javascript&#39;&gt; $(function(){ //监听鼠标悬停事件 $(&quot;#b&quot;).mouseover(function(){ //用类选择器修改元素的样式 $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;pink&quot;) $(&quot;.c&quot;).css(&quot;color&quot;,&quot;green&quot;) $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;30px&quot;) }) }); // 用类选择器修改鼠标离开事件 $(function(){ //监听鼠标悬停事件 $(&quot;#b&quot;).mouseout(function(){ //用类选择器修改元素的样式 $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;white&quot;) $(&quot;.c&quot;).css(&quot;color&quot;,&quot;red&quot;) $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;16px&quot;) }) }); // 用类选择器修改鼠标离开事件 $(function(){ $(&quot;#z&quot;).mouseover(function(){ $(&quot;#z&quot;).css(&quot;background-color&quot;,&quot;pink&quot;) }); }); &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div class=&quot;c&quot;&gt;风萧萧兮易水寒，壮士一去兮不复返&lt;/div&gt;&lt;br/&gt;&lt;br/&gt; &lt;input type=&quot;button&quot; id=&quot;z&quot; value=&quot;悬停变色&quot;&gt;&lt;br/&gt;&lt;br/&gt; &lt;img id=&quot;b&quot; src=&quot;./img/微信图片_20181121185908.jpg&quot; /&gt;&lt;br/&gt;&lt;br/&gt; &lt;/body&gt; &lt;/html&gt;  形变动画
+&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;title&gt;animate 动画&lt;/title&gt; &lt;script type=&quot;text/javascript&quot; src=&quot;."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>jquery</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 1, 2018</span></div>
+				<h1>jquery</h1>
+			</header>
+			<div class="content">
+				<p>#jquery鼠标键盘悬停事件，形变动画和淡入淡出<br/>
+鼠标和键盘悬停<br/></p>
+
+<pre><code>&lt;!DOCTYPE html&gt;&lt;br/&gt;
+&lt;html lang=&quot;en&quot;&gt;&lt;br/&gt;
+&lt;head&gt;&lt;br/&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;鼠标悬停&lt;/title&gt;
+    &lt;script type=&quot;text/javascript&quot; src='./js/jquery.min.js'&gt;&lt;/script&gt;
+    &lt;script type='text/javascript'&gt; 
+        $(function(){
+            //监听鼠标悬停事件
+            $(&quot;#b&quot;).mouseover(function(){
+
+                //用类选择器修改元素的样式
+                $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;pink&quot;)
+                $(&quot;.c&quot;).css(&quot;color&quot;,&quot;green&quot;)
+                $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;30px&quot;)
+            })
+        });
+        // 用类选择器修改鼠标离开事件
+        $(function(){
+            //监听鼠标悬停事件
+            $(&quot;#b&quot;).mouseout(function(){
+
+                //用类选择器修改元素的样式
+                $(&quot;.c&quot;).css(&quot;background-color&quot;,&quot;white&quot;)
+                $(&quot;.c&quot;).css(&quot;color&quot;,&quot;red&quot;)
+                $(&quot;.c&quot;).css(&quot;font-size&quot;,&quot;16px&quot;)
+            })
+        });
+        // 用类选择器修改鼠标离开事件
+        $(function(){
+    
+            $(&quot;#z&quot;).mouseover(function(){    
+                $(&quot;#z&quot;).css(&quot;background-color&quot;,&quot;pink&quot;)
+            });
+        });
+
+    &lt;/script&gt;
+
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;c&quot;&gt;风萧萧兮易水寒，壮士一去兮不复返&lt;/div&gt;&lt;br/&gt;&lt;br/&gt;
+    &lt;input type=&quot;button&quot; id=&quot;z&quot; value=&quot;悬停变色&quot;&gt;&lt;br/&gt;&lt;br/&gt;
+    &lt;img id=&quot;b&quot;  src=&quot;./img/微信图片_20181121185908.jpg&quot; /&gt;&lt;br/&gt;&lt;br/&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>形变动画</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;animate 动画&lt;/title&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;./js/jquery.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot;&gt;
+    //jquery单一入口
+    
+    $(function(){
+        $(&quot;#b2&quot;).click(function(){
+            //通过标签选择器来进行动画操作
+            $(&quot;div&quot;).animate({
+
+                left:'400px',
+                width:'400px',
+                // margin:'200px'
+                height:'300px'        
+            });
+            $(&quot;div&quot;).animate({
+
+                left:'600px',
+                    
+            });
+
+    });
+
+    });
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;!-- position: absolute  绝对定位 --&gt;
+    &lt;div style='background-color:yellow;width :100px;height: 100px;position: absolute;'&gt;&lt;/div&gt;  
+    &lt;br/&gt;&lt;br/&gt;
+    &lt;input style=&quot;margin-top:400px;&quot; type=&quot;button&quot; id=&quot;b2&quot; value=&quot;开始动画&quot;/&gt;
+
+    
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>淡入淡出</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;jquery的学习&lt;/title&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;./js/jquery.min.js&quot;&gt;&lt;/script&gt;
+
+     &lt;!-- jquery代码的入口，用来等待页面元素全部加载完成 --&gt;
+    &lt;script type=&quot;text/javascript&quot;&gt;
+    
+    $(function() {
+        /*  用jquery选择器来选取某一个div的内容*/
+        
+        var coo=$(&quot;#b&quot;).html();
+    
+         var con= $(&quot;.a&quot;).val();
+         alert(con)
+        // jquery绑定点击事件 click 单击 hide 隐藏 参数单位是毫秒
+        $(&quot;.a&quot;).click(function(){
+            //隐藏div
+            // $(&quot;#b&quot;).hide(3000);
+            $(&quot;#b&quot;).fadeOut(3000); //慢慢消失 淡出
+         });
+        $(&quot;.a1&quot;).click(function(){
+        
+            $(&quot;#b&quot;).fadeIn(3000); //慢慢出来 淡入
+         });
+
+        $(&quot;#aa&quot;).click(function(){
+            $(&quot;#b&quot;).fadeToggle(1000);
+        });
+
+    });
+
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id=&quot;b&quot;&gt;
+ &lt;img src=&quot;./img/微信图片_20181121185908.jpg&quot;/&gt;
+&lt;/div&gt;
+&lt;input id='b' type=&quot;text&quot; width=&quot;200&quot; value=&quot;默认显示&quot; /&gt;
+&lt;input class='a' type=&quot;button&quot; value=&quot;滚蛋吧肿瘤君&quot;/&gt;
+&lt;input class='a1' type=&quot;button&quot; value=&quot;出来吧皮卡丘&quot;/&gt;
+&lt;input id=&quot;aa&quot; type=&quot;button&quot; value=&quot;出来再进去&quot;&gt;
+
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>188 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2018-02-01 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/vue/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>vue.js入门</span>
+			</a>
+			<a class="prev-post" href="/posts/udp/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>udp协议</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

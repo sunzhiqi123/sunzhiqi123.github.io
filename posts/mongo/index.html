@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="mongo">
+<meta itemprop="description" content="#mongo数据库操作 C:\Users\xx&gt;mongo MongoDB shell version v4.0.5 connecting to: mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb Implicit session: session { &ldquo;id&rdquo; : UUID(&ldquo;543251bd-d6d9-4919-a74f-ca78fb584943&rdquo;) } MongoDB server version: 4.0.5 Server has startup warnings: 2019-01-02T08:45:43.637&#43;0800 I CONTROL [initandlisten] 2019-01-02T08:45:43.638&#43;0800 I CONTROL [initandlisten] ** WARNING: Access control is not enabled for the database. 2019-01-02T08:45:43.640&#43;0800 I CONTROL [initandlisten] ** Read and write access to data and configuration is unrestricted.
+2019-01-02T08:45:43.641&#43;0800 I CONTROL [initandlisten] Enable MongoDB&rsquo;s free cloud-based monitoring service, which will then receive and display metrics about your deployment (disk utilization, CPU, operation statistics, etc).">
+
+
+<meta itemprop="datePublished" content="2017-11-10T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2017-11-10T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="810">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="mongo" />
+<meta property="og:description" content="#mongo数据库操作 C:\Users\xx&gt;mongo MongoDB shell version v4.0.5 connecting to: mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb Implicit session: session { &ldquo;id&rdquo; : UUID(&ldquo;543251bd-d6d9-4919-a74f-ca78fb584943&rdquo;) } MongoDB server version: 4.0.5 Server has startup warnings: 2019-01-02T08:45:43.637&#43;0800 I CONTROL [initandlisten] 2019-01-02T08:45:43.638&#43;0800 I CONTROL [initandlisten] ** WARNING: Access control is not enabled for the database. 2019-01-02T08:45:43.640&#43;0800 I CONTROL [initandlisten] ** Read and write access to data and configuration is unrestricted.
+2019-01-02T08:45:43.641&#43;0800 I CONTROL [initandlisten] Enable MongoDB&rsquo;s free cloud-based monitoring service, which will then receive and display metrics about your deployment (disk utilization, CPU, operation statistics, etc)." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/mongo/" />
+<meta property="article:published_time" content="2017-11-10T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-11-10T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="mongo"/>
+<meta name="twitter:description" content="#mongo数据库操作 C:\Users\xx&gt;mongo MongoDB shell version v4.0.5 connecting to: mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb Implicit session: session { &ldquo;id&rdquo; : UUID(&ldquo;543251bd-d6d9-4919-a74f-ca78fb584943&rdquo;) } MongoDB server version: 4.0.5 Server has startup warnings: 2019-01-02T08:45:43.637&#43;0800 I CONTROL [initandlisten] 2019-01-02T08:45:43.638&#43;0800 I CONTROL [initandlisten] ** WARNING: Access control is not enabled for the database. 2019-01-02T08:45:43.640&#43;0800 I CONTROL [initandlisten] ** Read and write access to data and configuration is unrestricted.
+2019-01-02T08:45:43.641&#43;0800 I CONTROL [initandlisten] Enable MongoDB&rsquo;s free cloud-based monitoring service, which will then receive and display metrics about your deployment (disk utilization, CPU, operation statistics, etc)."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>mongo</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Nov 10, 2017</span></div>
+				<h1>mongo</h1>
+			</header>
+			<div class="content">
+				
+
+<p>#mongo数据库操作
+ C:\Users\xx&gt;mongo
+MongoDB shell version v4.0.5
+connecting to: mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb
+Implicit session: session { &ldquo;id&rdquo; : UUID(&ldquo;543251bd-d6d9-4919-a74f-ca78fb584943&rdquo;) }
+MongoDB server version: 4.0.5
+Server has startup warnings:
+2019-01-02T08:45:43.637+0800 I CONTROL  [initandlisten]
+2019-01-02T08:45:43.638+0800 I CONTROL  [initandlisten] ** WARNING: Access control is not enabled for the database.
+2019-01-02T08:45:43.640+0800 I CONTROL  [initandlisten] **          Read and write access to data and configuration is unrestricted.</p>
+
+<h2 id="2019-01-02t08-45-43-641-0800-i-control-initandlisten">2019-01-02T08:45:43.641+0800 I CONTROL  [initandlisten]<a href="#2019-01-02t08-45-43-641-0800-i-control-initandlisten" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Enable MongoDB&rsquo;s free cloud-based monitoring service, which will then receive and display
+metrics about your deployment (disk utilization, CPU, operation statistics, etc).</p>
+
+<p>The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+and anyone you share the URL with. MongoDB may use this information to make product
+improvements and to suggest MongoDB products and deployment options to you.</p>
+
+<p>To enable free monitoring, run the following command: db.enableFreeMonitoring()</p>
+
+<h2 id="to-permanently-disable-this-reminder-run-the-following-command-db-disablefreemonitoring">To permanently disable this reminder, run the following command: db.disableFreeMonitoring()<a href="#to-permanently-disable-this-reminder-run-the-following-command-db-disablefreemonitoring" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<blockquote>
+<p>show dbs
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+db
+test
+use admin
+switched to db admin
+db
+admin
+show users
+{
+        &ldquo;_id&rdquo; : &ldquo;admin.sunzhiqi&rdquo;,
+        &ldquo;user&rdquo; : &ldquo;sunzhiqi&rdquo;,
+        &ldquo;db&rdquo; : &ldquo;admin&rdquo;,
+        &ldquo;roles&rdquo; : [
+                {
+                        &ldquo;role&rdquo; : &ldquo;readWrite&rdquo;,
+                        &ldquo;db&rdquo; : &ldquo;local&rdquo;
+                }
+        ],
+        &ldquo;mechanisms&rdquo; : [
+                &ldquo;SCRAM-SHA-1&rdquo;,
+                &ldquo;SCRAM-SHA-256&rdquo;
+        ]
+}</p>
+
+<p>db.dropUser(&lsquo;sunzhiqi&rsquo;)
+true
+show users
+mongo -usunzhiqi -p
+db.createUser({&lsquo;user&rsquo;:&lsquo;sunzhiqi&rsquo;,&lsquo;pwd&rsquo;:&lsquo;858362&rsquo;,roles:[&lsquo;root&rsquo;]})
+Successfully added user: { &ldquo;user&rdquo; : &ldquo;sunzhiqi&rdquo;, &ldquo;roles&rdquo; : [ &ldquo;root&rdquo; ] }</p>
+
+<p>db.auth(&lsquo;sunzhiqi&rsquo;,&lsquo;858362&rsquo;)
+1
+show dbs/users/collections
+db.dropUser() 参数放用户名
+创建库  use 库名</p>
+</blockquote>
+
+<p>db.库名.insert({})
+db,dbname.insertMany([{},{},{}])
+db.库名.find()
+db.库名.remove({})
+db.teacher.drop()删除当前集合
+修改单个指定字段
+db.student.update({&lsquo;name&rsquo;:&lsquo;希希&rsquo;},{$set:{&lsquo;name&rsquo;:&lsquo;郭希希&rsquo;}}))
+修改字段
+db.student.update({&lsquo;name&rsquo;:&ldquo;},{$set:{&lsquo;name&rsquo;:&ldquo;}},{upsert:true,&lsquo;multi&rsquo;:true})  multi默认是false只改找到的第一个true是修改所有   upsert：true如果有替换 如果没有插入   flase 不修改也不插入（默认）
+删除
+db.dbname.remove({},{justOne;true}) 删除所有，justOne：true删除一个
+de.dbname.delete
+设置集合的大小
+db.createCollection(&lsquo;teacher&rsquo;,{capped:true,size:2})
+db.teacher.isCapped()
+db.teacher.DataSize()
+⽅法  .pretty()： 将结果格式化
+db.集合名称.find({条件⽂档}).pretty()
+时间戳
+Timestamp
+时间日期
+ISODate()
+Date()
+ISODate().valueOf()</p>
+
+<p>查询方法
+比较运算：小于$lt 小于等于$lte  大于$gt 大于等于$gte  不等于$ne
+逻辑查询：and 直接用逗号
+                 or db.dbname.find({$or:[{},{}]})
+范围查询：$in db.dbname.find({age:{$in:[,,]}})   $nin
+正则查询 ：db.dbname.find({&lsquo;age&rsquo;:{$regex:&ldquo;}})     // 或 $regex</p>
+
+<p>skip（）和limit（）
+db.dbname.skip(输几就跳几).limit(输几就取几个)</p>
+
+<p>投影
+db.dbname.find({必须要写，占位},{name:1,_id:0})
+                                                            投影数据，1是显示，0是不显示
+排序：sort 1是升序 -1是倒序
+db.dbname.find().sort({&lsquo;price&rsquo;:1/-1})</p>
+
+<p>db.sdhero.find({&lsquo;hometown&rsquo;:{$nin:[&lsquo;华山&rsquo;,&lsquo;桃花岛&rsquo;]}},{&lsquo;name&rsquo;:1,&lsquo;age&rsquo;:1,&lsquo;hometown&rsquo;:1,&rsquo;_id&rsquo;:0}).sort({&lsquo;name&rsquo;:1,&lsquo;age&rsquo;:-1})</p>
+
+<p>count() db.dbname.find().count()</p>
+
+<p>去重
+db.dbname.distinct(&lsquo;去重字段&rsquo;,{条件})
+3 mongodb中常见的数据类型
+3.1 常见类型
+Object ID： ⽂档ID
+String： 字符串， 最常⽤， 必须是有效的UTF-8
+Boolean： 存储⼀个布尔值， true或false
+Integer： 整数可以是32位或64位， 这取决于服务器
+Double： 存储浮点值
+Arrays： 数组或列表， 多个值存储到⼀个键
+Object： ⽤于嵌⼊式的⽂档， 即⼀个值为⼀个⽂档
+Null： 存储Null值
+Timestamp： 时间戳， 表示从1970-1-1到现在的总秒数
+Date： 存储当前⽇期或时间的UNIX时间格式</p>
+
+<pre><code>    db.students.find({});
+</code></pre>
+
+<p>加$符是取值 不加是列名</p>
+
+<p>创建索引
+db.dbname.createIndex({&lsquo;字段名:1&rsquo;})  1是升序 -1是倒序
+查询索引
+db.dbname.getIndexes()
+删除索引
+db.dbname.dropIndex({&lsquo;字段名:1&rsquo;}) dropIndexes删除所有索引</p>
+
+<p>查询时间
+db.cars.find({&lsquo;carname&rsquo;:&lsquo;大众&rsquo;}).explain(&lsquo;executionStats&rsquo;)
+db.cars.find({&lsquo;carname&rsquo;:&lsquo;大众&rsquo;}).explain(&lsquo;executionStats&rsquo;)
+创建联合索引
+db.dbname.createIndex({&lsquo;字段名:1&rsquo;,&lsquo;字段名&rsquo;:-1})
+创建唯一索引 要是有重复数据的话唯一索引可能不能创建，
+先清空集合数据在创建唯一索引，然后再插入数据
+db.dbname.createIndex({&lsquo;字段名:1&rsquo;} },{&ldquo;unique&rdquo;:true})
+建立索引注意点
+根据需要选择是否需要建立唯一索引
+索引字段是升序还是降序在单个索引的情况下不影响查询效率，但是带复合索引的条件下会有影响
+数据量巨大并且数据库的读出操作非常频繁的时候才需要创建索引，如果写入操作非常频繁，创建索引会影响写入速度
+mongodb的导入和导出个备份
+1 备份
+mongodump -u sunzhiqi -p858362 -d python -o test &ndash;authenticationDatabase admin
+保证数据库安全，主要用于灾难处理
+备份的语法：mongodump -h dbhost -d dbname -o dbdirectory
+-h： 服务器地址， 也可以指定端⼝号
+-d： 需要备份的数据库名称
+-o： 备份的数据存放位置， 此⽬录中存放着备份出来的数据
+示例：mongodump -h 192.168.196.128:27017 -d test1 -o ~/Desktop/test1bak
+2 恢复
+恢复语法：mongorestore -h dbhost -d dbname &ndash;dir dbdirectory 要当前路径
+-h： 服务器地址
+-d： 需要恢复的数据库实例
+&ndash;dir： 备份数据所在位置
+示例：mongorestore -h 192.168.196.128:27017 -d test2 &ndash;dir ~/Desktop/test1bak/test1
+3 导出
+mongoexport -u sunzhiqi -p858362 -d pyhon -c cars -o cars.json &ndash;authenticationDatabase admin
+用于和其他平台进行交互对接，将数据导出成指定格式文件进行使用，比如数据分析常用的csv文件 用于给非计算机行业的用户查看数据，对于他们来说csv文件(打开之后是电子表格)更方便
+导出语法: mongoexport -h dbhost -d dbname -c colname -o filename &ndash;type json/csv -f field
+-h: 服务器地址
+-d: 数据库名
+-c: 集合名
+-o: 导出文件名
+&ndash;type: 文件类型，默认json格式，可选数据类型json，csv
+-f: 需要导出的字段,导出为json格式的数据时可以不指定导出哪些字段，默认全部，导出成csv文件是必须指定
+示例：mongoexport -h 192.168.196.128:27017 -d test2 -c col1 -o test1_col1 [&ndash;type csv -f name,age,number]
+4 导入
+mongoimport -u sunzhiqi -p858362 -d python -c cars &ndash;file cars.json &ndash;authenticationDatabase admin
+导出语法: mongoimport -d dbname -c colname &ndash;file filename [&ndash;headerline &ndash;type json/csv -f field]
+-h: 服务器地址
+-d: 数据库名
+-c: 集合名
+-o: 导出文件名
+&ndash;type: 文件类型，默认json格式，可选数据类型json，csv
+-f: 需要导出的字段,导出为json格式的数据时可以不指定导出哪些字段，默认全部，导出成csv文件是必须指定
+示例：mongoinport -h 127.0.0.1:27017 -d python -c students
+mongo的聚合操作
+2.1 常用管道命令
+在mongodb中，⽂档处理完毕后， 通过管道进⾏下⼀次处理 常用管道命令如下：
+$group： 将集合中的⽂档分组， 可⽤于统计结果
+$match： 过滤数据， 只输出符合条件的⽂档
+$project： 修改输⼊⽂档的结构， 如重命名、 增加、 删除字段、 创建计算结果
+$sort： 将输⼊⽂档排序后输出
+$limit： 限制聚合管道返回的⽂档数
+$skip： 跳过指定数量的⽂档， 并返回余下的⽂档
+2.2 常用表达式
+表达式：处理输⼊⽂档并输出 语法：表达式:&lsquo;$列名&rsquo; 常⽤表达式:
+$sum： 计算总和， $sum:1 表示以⼀倍计数
+$avg： 计算平均值
+$min： 获取最⼩值
+$max： 获取最⼤值
+$push： 在结果⽂档中插⼊值到⼀个数组中
+db.students.aggregate({
+     $group:{_id:&lsquo;$sex&rsquo;,names:{$push:&lsquo;$name&rsquo;}}
+});
+db.students.aggregate({
+    $group:{_id:&lsquo;$sex&rsquo;,avgage:{$avg:&lsquo;$age&rsquo;}}
+});
+//放所有数据到数组中
+db.students.aggregate({
+    $group:{_id:&lsquo;$sex&rsquo;,names:{$push:&lsquo;$$ROOT&rsquo;}}
+});</p>
+
+<p>db.china.find()
+db.china.aggregate({
+       $group:{_id:&lsquo;$province&rsquo;,uid:{$push:&lsquo;$userid&rsquo;}}
+})</p>
+
+<p>db.cars.aggregate(
+    {$match:{&lsquo;carname&rsquo;:&lsquo;大众&rsquo;}},
+    {$group:{_id:{carname:&lsquo;$carname&rsquo;,price:&lsquo;$price&rsquo;}}},
+    {$group:{_id:&lsquo;$_id.carname&rsquo;,price:{$push:&lsquo;$_id.price&rsquo;}}}
+)</p>
+
+<p>db.cars.aggregate(
+{$match:{&lsquo;price&rsquo;:{$gt:500}}},
+{$project:{_id:0,price:1,&lsquo;车名&rsquo;:&lsquo;$carname&rsquo;}},
+{$group:{_id:&lsquo;$车名&rsquo;}},
+{$skip:1},
+//{$limit:2}
+{$sort:{_id:1}}
+);
+db.opinion.aggregate(
+       {$limit:10},
+       {$match:{source:&lsquo;金评媒&rsquo;,tags:{$regex:&ldquo;平台跑路&rdquo;}}},
+       {$project:{source:1,tags:1}}
+);
+db.opinion.aggregate(
+       {$match:{&lsquo;cmt_cnt&rsquo;:{$gt:&lsquo;1&rsquo;}}},
+       {$project:{cmt_cnt:1}}
+);</p>
+
+<p>db.china.aggregate(
+       {$group:{_id:{province:&lsquo;$province&rsquo;,userid:&lsquo;$userid&rsquo;}}},
+       {$group:{_id:{province:&lsquo;$_id.province&rsquo;},count:{$sum:1}}}
+)</p>
+
+<p>use python
+db.cars.insertMany([{&lsquo;carname&rsquo;:&lsquo;大众&rsquo;,&lsquo;color&rsquo;:&lsquo;red&rsquo;,&lsquo;price&rsquo;:120000},{&lsquo;carname&rsquo;:&lsquo;奔驰&rsquo;,&lsquo;color&rsquo;:&lsquo;bule&rsquo;,&lsquo;price&rsquo;:400000},{&lsquo;carname&rsquo;:&lsquo;宝马&rsquo;,&lsquo;color&rsquo;:&lsquo;green&rsquo;,&lsquo;price&rsquo;:300000},{&lsquo;carname&rsquo;:&lsquo;奔驰&rsquo;,&lsquo;color&rsquo;:&lsquo;red&rsquo;,&lsquo;price&rsquo;:600000},{&lsquo;carname&rsquo;:&lsquo;大众&rsquo;,&lsquo;color&rsquo;:&lsquo;yellow&rsquo;,&lsquo;price&rsquo;:100000}])
+db.cars.find()
+db.cars.update({&lsquo;carname&rsquo;:&lsquo;奔驰&rsquo;},{$set:{&lsquo;producttime&rsquo;:ISODate().valueOf()}},{&lsquo;multi&rsquo;:true})
+db.cars.find()
+db.cars.update({&lsquo;carname&rsquo;:&lsquo;大众&rsquo;,&lsquo;color&rsquo;:&lsquo;red&rsquo;},{$set:{&lsquo;price&rsquo;:20000}},{&lsquo;multi&rsquo;:true})
+db.cars.find({&lsquo;color&rsquo;:&lsquo;red&rsquo;})
+db.cars.find({&lsquo;carname&rsquo;:&lsquo;奔驰&rsquo;,&lsquo;color&rsquo;:&lsquo;red&rsquo;})</p>
+
+<p>db
+db.sdhero.insertMany([{&ldquo;name&rdquo; : &ldquo;郭靖&rdquo;, &ldquo;hometown&rdquo; : &ldquo;蒙古&rdquo;, &ldquo;age&rdquo; : 20, &ldquo;gender&rdquo; : true },{&ldquo;name&rdquo; : &ldquo;黄蓉&rdquo;, &ldquo;hometown&rdquo; : &ldquo;桃花岛&rdquo;, &ldquo;age&rdquo; : 18, &ldquo;gender&rdquo; : false },{&ldquo;name&rdquo; : &ldquo;华筝&rdquo;, &ldquo;hometown&rdquo; : &ldquo;蒙古&rdquo;, &ldquo;age&rdquo; : 18, &ldquo;gender&rdquo; : false },{&ldquo;name&rdquo; : &ldquo;黄药师&rdquo;, &ldquo;hometown&rdquo; : &ldquo;桃花岛&rdquo;, &ldquo;age&rdquo; : 40, &ldquo;gender&rdquo; : true },{&ldquo;name&rdquo; : &ldquo;段誉&rdquo;, &ldquo;hometown&rdquo; : &ldquo;黄山&rdquo;, &ldquo;age&rdquo; : 16, &ldquo;gender&rdquo; : true },{&ldquo;name&rdquo; : &ldquo;段王爷&rdquo;, &ldquo;hometown&rdquo; : &ldquo;大理&rdquo;, &ldquo;age&rdquo; : 45, &ldquo;gender&rdquo; : true },{&ldquo;name&rdquo; : &ldquo;洪七公&rdquo;, &ldquo;hometown&rdquo; : &ldquo;华山&rdquo;, &ldquo;age&rdquo; : 18, &ldquo;gender&rdquo; : true }])
+db.sdhero.find()
+db.sdhero.find({age:{$gt:18,$lte:40},&lsquo;gender&rsquo;:true})
+db.sdhero.find({&lsquo;hometown&rsquo;:{$in:[&lsquo;蒙古&rsquo;,&lsquo;大理&rsquo;]},&lsquo;age&rsquo;:{$gt:30},&lsquo;gender&rsquo;:true})
+db.sdhero.find({$or:[{&lsquo;hometown&rsquo;:&lsquo;蒙古&rsquo;},{&lsquo;hometown&rsquo;:&lsquo;大理&rsquo;}],&lsquo;age&rsquo;:{$gt:30},&lsquo;gender&rsquo;:true})
+db.sdhero.find({&lsquo;hometown&rsquo;:{$regex:&lsquo;蒙古|大理&rsquo;}})
+db.sdhero.find({&lsquo;hometown&rsquo;:{$regex:&lsquo;山$|岛$&rsquo;},age:{$lt:40}})</p>
+
+<p>1.格式化查看一年级二班students中的所有学生
+2查看一年级二班students中所有年龄14 岁的学生
+3.查看一年级二班students中所有年龄大于7岁并且小于 14 岁的所有男学生
+4.查看一年级二班students所有年龄是 14 岁或 16 岁的学生
+5.查看一年级二班students中所有兴趣爱好包括画画的学生
+6.查看一年级二班的学生，男生（sex为 0）年龄值有哪些
+7.查看所有优秀（&gt;=80）的学生姓名和得分，并降序排序
+8.一年级二班students中，修改名为“张三”的学生，年龄为 8 岁，兴趣爱好为 跳舞和画画
+9.给分数不及格的学生，添加 level：不及格
+10.计算分数在60~80（包含60和80）之间的学生或者年龄在15~18（包含15和18），仅保留name和score，按照score降序，name升序</p>
+
+<p>db.students.insert(
+[{name:&ldquo;张三&rdquo;,age:18,sex:&ldquo;男&rdquo;,hobby:[&ldquo;喝酒&rdquo;,&ldquo;音乐&rdquo;,&ldquo;电影&rdquo;],score:70},
+{name:&ldquo;李四&rdquo;,age:12,sex:&ldquo;男&rdquo;,hobby:[&ldquo;喝酒&rdquo;,&ldquo;音乐&rdquo;,&ldquo;电影&rdquo;],score:79},
+{name:&ldquo;王兰&rdquo;,age:13,sex:&ldquo;女&rdquo;,hobby:[&ldquo;化妆&rdquo;,&ldquo;画画&rdquo;,&ldquo;观察&rdquo;],score:94},
+{name:&ldquo;王五&rdquo;,age:14,sex:&ldquo;男&rdquo;,hobby:[&ldquo;烫头&rdquo;,&ldquo;打架&rdquo;,&ldquo;好人&rdquo;],score:86},
+{name:&ldquo;赵花&rdquo;,age:15,sex:&ldquo;女&rdquo;,hobby:[&ldquo;绣花&rdquo;,&ldquo;学习&rdquo;,&ldquo;钢琴&rdquo;],score:70},
+{name:&ldquo;赵六&rdquo;,age:16,sex:&ldquo;男&rdquo;,hobby:[&ldquo;抽烟&rdquo;,&ldquo;拉架&rdquo;,&ldquo;劝架&rdquo;],score:77},
+{name:&ldquo;钱八&rdquo;,age:14,sex:&ldquo;男&rdquo;,hobby:[&ldquo;电脑&rdquo;,&ldquo;游戏&rdquo;,&ldquo;吃鸡&rdquo;],score:70},
+{name:&ldquo;钱多&rdquo;,age:15,sex:&ldquo;男&rdquo;,hobby:[&ldquo;挣钱&rdquo;,&ldquo;研究&rdquo;,&ldquo;象棋&rdquo;],score:46},
+{name:&ldquo;周静&rdquo;,age:17,sex:&ldquo;女&rdquo;,hobby:[&ldquo;学习&rdquo;,&ldquo;跳舞&rdquo;,&ldquo;唱歌&rdquo;],score:87},
+{name:&ldquo;吴小&rdquo;,age:15,sex:&ldquo;男&rdquo;,hobby:[&ldquo;旅游&rdquo;,&ldquo;追星&rdquo;,&ldquo;娱乐&rdquo;],score:76}])
+db.students.find().pretty()
+db.students.find({&lsquo;age&rsquo;:14})
+db.students.find({&lsquo;age&rsquo;:{$gt:7,$lt:14},&lsquo;sex&rsquo;:&lsquo;男&rsquo;})
+db.students.find({$or:[{&lsquo;age&rsquo;:14},{&lsquo;age&rsquo;:16}]})
+db.students.find({&lsquo;hobby&rsquo;:{$in:[&lsquo;画画&rsquo;]}});
+db.students.distinct(&lsquo;age&rsquo;,{&lsquo;sex&rsquo;:&lsquo;男&rsquo;})
+db.students.find({&lsquo;score&rsquo;:{$gte:80}},{&lsquo;name&rsquo;:1,&lsquo;score&rsquo;:1,&rsquo;_id&rsquo;:0})
+db.students.update({&lsquo;name&rsquo;:&lsquo;张三&rsquo;},{$set:{&lsquo;age&rsquo;:8,&lsquo;hobby&rsquo;:[&lsquo;跳舞&rsquo;,&lsquo;画画&rsquo;]}})
+db.students.find()
+db.students.update({&lsquo;score&rsquo;:{$lt:60}},{$set:{&lsquo;level&rsquo;:&lsquo;不及格&rsquo;}})
+db.students.find({$or:[{&lsquo;score&rsquo;:{$gte:60,$lte:80}},{&lsquo;age&rsquo;:{$gte:15,$lte:18}}]},{&lsquo;name&rsquo;:1,&lsquo;score&rsquo;:1,&rsquo;_id&rsquo;:0}).sort({&lsquo;score&rsquo;:-1,&lsquo;name&rsquo;:1})
+db.students.find({},{&lsquo;name&rsquo;:1,&rsquo;_id&rsquo;:0,&lsquo;sex&rsquo;:1}).sort({&lsquo;sex&rsquo;:1})</p>
+
+<p>db.opinion.find();
+//1.查询出所有作者名称
+db.opinion.find({},{&lsquo;author&rsquo;:1,&rsquo;_id&rsquo;:0});
+//2.查询有融资的平台名称，并按照id降序排列
+db.opinion.find({},{&lsquo;source&rsquo;:1}).sort({&rsquo;_id&rsquo;:-1})
+//3.给gmt_create为空值的文档添加默认当前日期
+db.opinion.update({&lsquo;gmt_create&rsquo;:&ldquo;},{$set:{&lsquo;gmt_create&rsquo;:ISODate()}},{&lsquo;multi&rsquo;:true})
+//4.找出所有‘金评媒’或‘P2P观察网’中，所有跑路的信息记录。
+db.opinion.find({&lsquo;source&rsquo;:{$regex:&lsquo;金评媒|P2P观察网&rsquo;}},{&lsquo;tags&rsquo;:1})
+db.opinion.distinct(&lsquo;tags&rsquo;,{&lsquo;source&rsquo;:{$regex:&lsquo;金评媒|p2p&rsquo;}})
+//5.找出所有item_pub_time下时间在2015-12-1至2015-12-15 之间的所有数据，并打印出文章title
+db.opinion.find({&lsquo;item_pub_time&rsquo;:{$gt:&lsquo;2015-12-01&rsquo;,$lt:&lsquo;2015-12-15&rsquo;}},{&lsquo;title&rsquo;:1})
+//6.统计出非‘金评媒’，非‘P2P理财’网的文章总数
+db.opinion.find({&lsquo;source&rsquo;:{$nin:[&lsquo;金评媒&rsquo;,&lsquo;P2P理财&rsquo;]}}).count()
+//7.删除item_pub_time时间在2015-12-1  以前的所有记录。
+db.opinion.remove({&lsquo;item_pub_time&rsquo;:{$lt:&lsquo;2015-12-01&rsquo;}},{&lsquo;multi&rsquo;:true})
+db.opinion.find().count()</p>
+
+<p>//1.根据所有&rdquo;author&rdquo;分组，取出所有title
+db.p2p.opinion.aggregate({$group:{_id:&lsquo;$author&rsquo;,title:{$push:&lsquo;$title&rsquo;}}})
+//2.跳过十条取出十条数据，根据$$ROOT找到每条信息的title，author，和item_pub_time(只显示这三项)
+db.p2p.opinion.aggregate({$skip:10},{$limit:10},{$project:{title:1,_id:0,author:1,item_pub_time:1}})
+//3.过滤出所有cmt_cnt为0的数据，找到所有title，并且找到item_pud_time时间
+db.p2p.opinion.aggregate({$match:{cmt_cnt:&lsquo;0&rsquo;}},{$project:{title:1,_id:0,item_pub_time:1}})
+//4.找到所有url为空的信息，将空的url加上<a href="https://www.baidu.com">https://www.baidu.com</a>
+//db.p2p.opinion.update({url:&ldquo;},{$set:{url:&lsquo;<a href="https://www.baidu.com'}},{upsert:true,multi:true}">https://www.baidu.com'}},{upsert:true,multi:true}</a>)
+db.p2p.opinion.aggregate({$match:{url:{$nin:[&ldquo;]}}},{$project:{url:&lsquo;<a href="https://www.baidu.com',title:1,_id:0}}">https://www.baidu.com',title:1,_id:0}}</a>)
+//5.找到所有cmt_cnt为0并且为金评媒的信息，利用porject只显示title，content
+//db.p2p.opinion.aggregate({$match:{cmt_cnt:&lsquo;0&rsquo;,source:{$regex:&lsquo;金评媒&rsquo;}}},{$project:{title:1,_id:0,content:1}})
+//6.根据source分组，输出属于p2p理财的新闻有多少记录
+db.p2p.aggregate({$group:{_id:&lsquo;$source&rsquo;,count:{$sum:1}}},{$match:{_id:{$regex:&lsquo;P2P理财&rsquo;}}})
+//7.过滤出item_pud_time 2015-12-15之后的信息，输出平台跑路的平台名称
+db.p2p.aggregate({$match:{item_pub_time:{$gt:&lsquo;2015-12-15&rsquo;},tags:{$regex:&lsquo;平台跑路&rsquo;}}},{$project:{source:1,_id:0}})
+//8.根据source分组，找到平台跑路的有多少个
+db.p2p.aggregate(
+    {$match:{tags:{$regex:&lsquo;平台跑路&rsquo;}}},
+    {$group:{_id:&lsquo;$source&rsquo;,count:{$sum:1}}}<br />
+    )
+//9.过滤出所有p2p理财和金评媒的新闻根据id进行降序排列，找到前3条信息的title
+db.p2p.aggregate(
+   {$match:{source:{$regex:&lsquo;P2P理财&rsquo;,$regex:&lsquo;金评媒&rsquo;}}},
+   {$sort:{_id:-1}},
+   {$limit:3},
+   {$project:{title:1}})
+//10.输出跑路平台概率
+db.p2p.aggregate(
+{$match:{tags:{$regex:&lsquo;平台跑路&rsquo;}}},
+{$group:{_id:null,count:{$sum:1}}}
+)</p>
+
+<p>//*新建一个数据库，将p3p添加到数据库中，对此数据库新建子用户，并使用此用户（该用户只对新建的库有读写操作）
+//1、将所有空的author改为&rsquo;佚名&rsquo;。（更改原来的数据）
+db.p3p1.update({author:&ldquo;},{$set:{author:&lsquo;佚名&rsquo;}},{mutli:true})
+//2、找出item_pub_time中2015-12-10以后的信息并按id升序排列并且格式化输出
+db.p3p1.aggregate({$match:{item_pub_time:{$lt:&lsquo;2015-12-10&rsquo;}}},{$sort:{id:1}}).pretty()
+//3、找出id为200的数据，如果没有则添加只有_id为200的一条数据
+db.p3p1.find({id:200},{$set:{id:200}},{upsert:true})
+//4、删除item_pub_time中2015-12-1之前的数据
+db.p3p1.remove({item_pub_time:{$lt:&lsquo;2015-12-01&rsquo;}})
+//5、给gmt_create字段添加当前日期
+db.p3p1.update({gmt_create:&ldquo;},{$set:{gmt_create:ISODate()}},{upsert:true})
+//6、按平台跑路和平台融资分组并列出两者中的title都有哪些
+db.p3p1.aggregate({$match:{tags:{$regex:&lsquo;平台&rsquo;}}},{$group:{_id:&lsquo;$tags&rsquo;,title:{$push:&lsquo;$title&rsquo;}}})
+//7、按id排序，之后取出中间5-10条的内容，将所有url添加到一个数组中并计算总数
+db.p3p1.aggregate({$sort:{_id:1}},{$skip:5},{$limit:5},{$group:{_id:null,url:{$push:&lsquo;$url&rsquo;},count:{$sum:1}}})
+//8、按是否跑路分组，找出每组中最大时间和最小时间
+db.p3p1.aggregate({$match:{tags:{$regex:&lsquo;平台&rsquo;}}},
+{$group:{_id:&lsquo;$tags&rsquo;,max:{$max:&lsquo;$item_pub_time&rsquo;},min:{$min:&lsquo;$item_pub_time&rsquo;}}})
+//9、根据source，item_pub_time分组，找出每组中有多少条content,只显示结果，不显示content内容
+db.p3p1.aggregate({$group:{_id:{source:&lsquo;$source&rsquo;,item_pub_time:&lsquo;$item_pub_time&rsquo;},count:{$sum:1}}},{$project:{count:1,_id:0}})
+//10、统计出每个source下的tags数量，结果中的字段为{&lsquo;source&rsquo;:&ldquo;,count:&ldquo;}（同一个tags只统计一次）
+db.p3p1.aggregate({$group:{_id:{source:&lsquo;$source&rsquo;,tags:&lsquo;$tags&rsquo;}}},
+{$group:{_id:{source1:&lsquo;$_id.source&rsquo;,tags:&lsquo;$_id.tags&rsquo;},count:{$sum:1}}}
+)</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>810 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2017-11-10 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/tcp/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>网络通信</span>
+			</a>
+			<a class="prev-post" href="/posts/scripy3/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>selenium用超级鹰破解验证码</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

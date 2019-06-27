@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>go on 孙志奇的个人博客</title>
+    <link>/tags/go/</link>
+    <description>Recent content in go on 孙志奇的个人博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
+    <lastBuildDate>Sun, 14 May 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>mysql 子查询</title>
+      <link>/posts/hugoisforlovers/</link>
+      <pubDate>Sun, 14 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/hugoisforlovers/</guid>
+      <description>#mysql 子查询 select * from students where age &amp;gt; (select avg(age) from students);
+select name from classes where id in (select cls_id from students);
+select * from students where (height,age) = (select max(height), max(age) from students);
+子查询
+在一个 select 语句中,嵌入了另外一个 select 语句, 那么被嵌入的 select 语句称之为子查询语句
+主查询 主要查询的对象,第一条 select 语句 主查询和子查询的关系 1.子查询是嵌入到主查询中 2.子查询是辅助主查询的,要么充 当条件,要么充当数据源 3.子查询是可以独立存在的语句,是一条完整的 select 语句
+子查询分类 标量子查询 返回的结果是一个数据(一行一列)只能用比较用算符
+列子查询 返回的结果是一列(一列多行)
+行子查询 返回的结果是一行(一行多列)
+select * from student where gender = &amp;lsquo;男&amp;rsquo; and height &amp;gt;(select avg(height) from student); 列出身高大于平均身高的数据 标量子查询:返回定值,数字、字符串</description>
+    </item>
+    
+    <item>
+      <title>MySQL 数据库</title>
+      <link>/posts/goisforlovers/</link>
+      <pubDate>Tue, 11 Apr 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/goisforlovers/</guid>
+      <description>#MySQL 数据库 什么是数据库？
+ 数据库(Database)是按照数据结构来组织，存储和管理数据的，建立在计算机存储设备上的仓库。  mysql 常用数据库引擎：innodb muisam
+常用的数据库有哪些？
+ mysql(百万级的数据库)，被Oracle收购 access(微软，淘汰) sql server(微软新版) Oracle 甲骨文(比mysql更高级的数据库)  MySQL简介
+命令行操作mysql
+cd d:/xampp/mysql/bin d: netstat -an|find &amp;ldquo;3306&amp;rdquo; 监听 mysql -uroot -p密码 修改密码 use mysql; update user set password = password(&amp;lsquo;858362&amp;rsquo;) where user = &amp;lsquo;root&amp;rsquo;; 退出 quit exit select version()； 查看版本号 select now()； 查看时间 select 6*6; 可以运算
+创建数据库 create database python_test_01 charset=utf8; show databases; 查看创建的数据库 删除数据库 drop database python_test_01; 选择数据库 use python_test_01;</description>
+    </item>
+    
+  </channel>
+</rss>

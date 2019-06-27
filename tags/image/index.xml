@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Image on 孙志奇的个人博客</title>
+    <link>/tags/image/</link>
+    <description>Recent content in Image on 孙志奇的个人博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
+    <lastBuildDate>Thu, 29 Jun 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/image/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>mysql自关联和多表连接查询</title>
+      <link>/posts/post-with-featured-image/</link>
+      <pubDate>Thu, 29 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/post-with-featured-image/</guid>
+      <description>#mysql自关联和多表连接查询
+多表连接查询 inner join 内查询 left join 左查询 right join 右查询
+select student.id,student.name,classes.name from student inner join classes on student.cls_id = classes.id;
+inner join内连 left join左连 right join右连 表名join 表名 on 连接字段
+select student.name,course_student.cid from student left join course_student on student.id = course_student.sid;
+以student.id与course_student.sid连接匹配,打印student.name,course_student.cid
+select student.name,course.name from student left join course_student on student.id = course_student.sid left join course on course_student.cid =course.id; 三表(2明细表+1关系表)相连取交集打印学生名字与课程名字  select * from areas as p inner join areas as a on p.</description>
+    </item>
+    
+    <item>
+      <title>视图的操作 </title>
+      <link>/posts/the-figure-shortcode/</link>
+      <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/the-figure-shortcode/</guid>
+      <description>###视图的操作
+定义：通俗的讲，视图就是一条SELECT语句执行后返回的结果集。所以我们在创建视图的时候，主要的工作就落在创建这条SQL查询语句上
+视图的作用：提高了重用性，就像一个函数，对数据库重构，却不影响程序的运行，提高了安全性能，可以对不同的用户，让数据更加清晰，方便操作，特别是查询操作，减少复杂的SQL语句，增强可读性；更加安全，数据库授权命令不能限定到特定行和特定列，但是通过合理创建视图，可以把权限限定到行列级别；
+事务特性：原子性、一致性、隔离性、持久性
+原子性（atomicity） 一个事务必须被视为一个不可分割的最小工作单元，整个事务中的所有操作要么全部提交成功，要么全部失败回滚，对于一个事务来说，不可能只执行其中的一部分操作，这就是事务的原子性 一致性（consistency） 数据库总是从一个一致性的状态转换到另一个一致性的状态。（在前面的例子中，一致性确保了，即使在执行第三、四条语句之间时系统崩溃，支票账户中也不会损失200美元，因为事务最终没有提交，所以事务中所做的修改也不会保存到数据库中。） 隔离性（isolation） 通常来说，一个事务所做的修改在最终提交以前，对其他事务是不可见的。（在前面的例子中，当执行完第三条语句、第四条语句还未开始时，此时有另外的一个账户汇总程序开始运行，则其看到支票帐户的余额并没有被减去200美元。） 持久性（durability） 一旦事务提交，则其所做的修改会永久保存到数据库。（此时即使系统崩溃，修改的数据也不会丢失。）
+使用场合：权限控制的时候，不希望用户访问表中某些含敏感信息的列，比如salary&amp;hellip;关键信息来源于多个复杂关联表，可以创建视图提取我们需要的信息，简化操作；
+create view v_areas as select * from areas; view视图,建立在表基础之上,as定界符(as前固定格式,as后是表数据)，将areas表格创建为视图v_areas
+select * from v_areas; 查看视图数据
+create or replace view v_areas as select * from student; 改 将v_areas视图里的数据替换为student表格里的数据
+create or replace view test4 as select t1.name as tname,t2.* from test as t1 LEFT JOIN test1 as t2 on t1.pid = t2.id; 修改视图
+drop view v_areas; 删除视图v_areas
+视图的内容会随着主表的内容改变而改变，修改视图的内容主表的内容也会随之而改变。
+事务：begin 或 start transaction 开启事务 rollback 回滚 只能返回上一次操作 commit 提交 一旦提交后就不能回复</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="vue表单选项框">
+<meta itemprop="description" content="#vue表单选项框 选项框选的内容在下面显示
+&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt; &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt; &lt;title&gt;vue表单的学习&lt;/title&gt; &lt;script src=&quot;./js/vue.js&quot;&gt;&lt;/script&gt; &lt;script&gt; //单一入口 window.onload = function(){ var app = new Vue({ el:&quot;#a&quot;, data:{ message:&#39;你好&#39; } }); // 多选框的增删改查 var app = new Vue({ el:&quot;#b&quot;, data:{ checknames:[] } }); // 单选框 var app = new Vue({ el:&quot;#c&quot;, data:{ picked:&quot;&quot;,gender:&quot;男&quot; } }); } &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id = &quot;a&quot;&gt; &lt;!-- 双向绑定用 v-model绑定 --&gt; &lt;input type=&#39;text&#39; v-model=&#39;message&#39;/&gt; 设置的变量内容是: {{message}} &lt;!">
+
+
+<meta itemprop="datePublished" content="2018-03-02T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2018-03-02T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="189">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="vue表单选项框" />
+<meta property="og:description" content="#vue表单选项框 选项框选的内容在下面显示
+&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt; &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt; &lt;title&gt;vue表单的学习&lt;/title&gt; &lt;script src=&quot;./js/vue.js&quot;&gt;&lt;/script&gt; &lt;script&gt; //单一入口 window.onload = function(){ var app = new Vue({ el:&quot;#a&quot;, data:{ message:&#39;你好&#39; } }); // 多选框的增删改查 var app = new Vue({ el:&quot;#b&quot;, data:{ checknames:[] } }); // 单选框 var app = new Vue({ el:&quot;#c&quot;, data:{ picked:&quot;&quot;,gender:&quot;男&quot; } }); } &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id = &quot;a&quot;&gt; &lt;!-- 双向绑定用 v-model绑定 --&gt; &lt;input type=&#39;text&#39; v-model=&#39;message&#39;/&gt; 设置的变量内容是: {{message}} &lt;!" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/vue5/" />
+<meta property="article:published_time" content="2018-03-02T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2018-03-02T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="vue表单选项框"/>
+<meta name="twitter:description" content="#vue表单选项框 选项框选的内容在下面显示
+&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt; &lt;meta charset=&quot;UTF-8&quot;&gt; &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt; &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt; &lt;title&gt;vue表单的学习&lt;/title&gt; &lt;script src=&quot;./js/vue.js&quot;&gt;&lt;/script&gt; &lt;script&gt; //单一入口 window.onload = function(){ var app = new Vue({ el:&quot;#a&quot;, data:{ message:&#39;你好&#39; } }); // 多选框的增删改查 var app = new Vue({ el:&quot;#b&quot;, data:{ checknames:[] } }); // 单选框 var app = new Vue({ el:&quot;#c&quot;, data:{ picked:&quot;&quot;,gender:&quot;男&quot; } }); } &lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id = &quot;a&quot;&gt; &lt;!-- 双向绑定用 v-model绑定 --&gt; &lt;input type=&#39;text&#39; v-model=&#39;message&#39;/&gt; 设置的变量内容是: {{message}} &lt;!"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>vue表单选项框</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Mar 2, 2018</span></div>
+				<h1>vue表单选项框</h1>
+			</header>
+			<div class="content">
+				<p>#vue表单选项框
+选项框选的内容在下面显示</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+    &lt;title&gt;vue表单的学习&lt;/title&gt;
+    &lt;script src=&quot;./js/vue.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        //单一入口
+    window.onload = function(){
+        var app = new Vue({
+
+            el:&quot;#a&quot;,
+            data:{
+                message:'你好'
+            }
+        });
+        // 多选框的增删改查
+        var app = new Vue({
+            el:&quot;#b&quot;,
+            data:{
+                checknames:[]
+            }
+        });
+        // 单选框
+        var app = new Vue({
+            el:&quot;#c&quot;,
+            data:{
+                picked:&quot;&quot;,gender:&quot;男&quot;
+            }
+        });
+    }
+    
+    &lt;/script&gt;
+    
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id = &quot;a&quot;&gt;
+        &lt;!-- 双向绑定用 v-model绑定 --&gt;
+    &lt;input type='text' v-model='message'/&gt;
+
+    设置的变量内容是: {{message}}
+    &lt;!-- 多行文本域 textarea --&gt;
+    &lt;textarea v-model=&quot;message&quot; style=&quot;height:300px&quot;&gt;&lt;/textarea&gt;&lt;br/&gt;
+
+    &lt;!-- 多选框的绑定 checkbox label是标签属性，来注明多选框的内容 --&gt;
+    &lt;input type='checkbox' name=&quot;crouse&quot; value='mysql'/&gt;
+    &lt;label&gt;mysql&lt;/label&gt;
+
+    &lt;input type=&quot;checkbox&quot; name=&quot;crouse&quot; value=&quot;jquery&quot;/&gt;
+    &lt;label&gt;jquery&lt;/label&gt;
+
+    &lt;input type=&quot;checkbox&quot; name=&quot;crouse&quot; value=&quot;vue&quot;/&gt;
+    &lt;label&gt;vue&lt;/label&gt;
+    &lt;br/&gt;&lt;br/&gt;
+&lt;/div&gt;
+&lt;!-- 多选框的绑定并显示出来 --&gt;
+&lt;div id=&quot;b&quot;&gt;
+     
+     &lt;!-- 多选框的绑定 checkbox label是标签属性，来注明多选框的内容 --&gt;
+     &lt;input type='checkbox' name=&quot;crouse&quot; value='mysql' v-model=&quot;checknames&quot; /&gt;
+     &lt;label&gt;mysql&lt;/label&gt;
+ 
+     &lt;input type=&quot;checkbox&quot; name=&quot;crouse&quot; value=&quot;jquery&quot; v-model=&quot;checknames&quot;/&gt;
+     &lt;label&gt;jquery&lt;/label&gt;
+ 
+     &lt;input type=&quot;checkbox&quot; name=&quot;crouse&quot; value=&quot;vue&quot; v-model=&quot;checknames&quot;/&gt;
+     &lt;label&gt;vue&lt;/label&gt;
+     &lt;!-- 用vue的模板语法来打印勾选的课程列表 --&gt;
+     {{ checknames }} &lt;label&gt;这是你所选的课程&lt;/label&gt;
+&lt;/div&gt;
+&lt;br/&gt;&lt;br/&gt;
+&lt;!-- vue的单选标签 --&gt;
+    &lt;div id=&quot;c&quot;&gt;
+        &lt;!-- name 分组 --&gt;
+        &lt;input type=&quot;radio&quot; name=&quot;yesorno&quot; value=&quot;是&quot; v-model=&quot;picked&quot; /&gt;
+        &lt;label&gt;是&lt;/label&gt;
+        &lt;input type=&quot;radio&quot; name=&quot;yesorno&quot; value=&quot;否&quot; v-model=&quot;picked&quot; /&gt;
+        &lt;label&gt;否&lt;/label&gt;
+        &lt;input type=&quot;radio&quot; name=&quot;nanornv&quot; value=&quot;男&quot; v-model=&quot;gender&quot; /&gt;
+        &lt;label&gt;男&lt;/label&gt;
+        &lt;input type=&quot;radio&quot; name=&quot;nanornv&quot; value=&quot;女&quot; v-model=&quot;gender&quot; /&gt;
+        &lt;label&gt;女&lt;/label&gt;
+        &lt;br/&gt;
+        &lt;span&gt;你选中的是：{{ picked }}  ，&amp;nbsp;选择性别：{{ gender }}&lt;/span&gt;
+    &lt;/div&gt;
+
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>189 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2018-03-02 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/vue6/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>vue样式的动态绑定</span>
+			</a>
+			<a class="prev-post" href="/posts/vue4/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>vue简单逻辑判断</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

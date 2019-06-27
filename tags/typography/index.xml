@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Typography on 孙志奇的个人博客</title>
+    <link>/tags/typography/</link>
+    <description>Recent content in Typography on 孙志奇的个人博客</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
+    <lastBuildDate>Wed, 05 Jul 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/typography/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>mysql分组和排序操作</title>
+      <link>/posts/typography/</link>
+      <pubDate>Wed, 05 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/typography/</guid>
+      <description>#mysql分组和排序操作
+分组、排序操作
+select * from student order by id desc,height asc; 排序,mysql默认根据主键正序排列,order by 排序字段,asc正序,desc倒序,防止一个条件相同内容导致无法排序,再增加第二个排序条件进行排序
+select count(*),gender from student group by gender; group by分组,以gender分组,select与from之间为打印出来的内容,分别统计男、女人数
+select count(*),age from student where age = 20 group by age; 打印student表格里年龄为20的人数
+select count(*),age,group_concat(id) from student where age = 20 group by age;
+select gender,count() from student group by gender having count() &amp;gt; 3; student表格里以gender分组,打印gender与count个数,having必须跟group by使用,是在分组后二次筛选
+select * from student limit 1,2; limit限制 1:从第二个开始,取2个数据
+select * from student order by rand() limit 1,2; order by rand()随机取数据</description>
+    </item>
+    
+  </channel>
+</rss>
