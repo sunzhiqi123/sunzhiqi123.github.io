@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目">
+<meta itemprop="description" content=" 在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目 一般情况下，将一个项目部署到生产环境的流程如下： 需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。 整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。 Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。 Jenkins主要有三种安装方式 下载官方war包，放到tomcat中直接运行。 yum安装。 使用官方docker镜像。 毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。 首先安装docker centos 安装docker 1 docker 要求 CentOS 系统的内核版本高于 3.10 ，查看本页面的前提条件来验证你的CentOS 版本是否支持 Docker 2、使用 root 权限登录 Centos。确保 yum 包更新到最新。 sudo yum update 3、卸载旧版本(如果安装过旧版本的话) sudo yum remove docker docker-common docker-selinux docker-engine 4、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的 sudo yum install -y yum-utils device-mapper-persistent-data lvm2 5、设置yum源 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 6、可以查看所有仓库中所有docker版本，并选择特定版本安装 yum list docker-ce --showduplicates | sort -r 7、安装docker sudo yum install docker-ce 8、启动并加入开机启动 sudo systemctl start docker sudo systemctl enable docker 9、验证安装是否成功(有client和service两部分表示docker安装启动都成功了) docker version 然后下载jenkins官方docker镜像 docker pull jenkins/jenkins 查看镜像 docker images 在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件 mkdir /root/j_node chmod 777 /root/j_node 后台将镜像以容器的形式起服务，对端口映射，同时把刚刚建立的目录挂载到容器中 docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins 这里注意，如果是阿里云的话，安全策略需要暴露8081端口 通过网址访问 http://你的ip:8081 然后通过命令获取安装秘钥 docker logs jenkins 有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。 完毕后，根据提示设置登陆账户 然后新建一个项目，在源代码控制那一栏，输入你的项目的线上git仓库地址，注意默认应该是master分支，因为生产环境部署的代码必须是主分支 保存后，点击Build Now进行部署，jenkins会自动去git版本库中抽取最新的master分支进行部署，同时每部署一次的历史记录都会被保存下来 此时，进入/root/j_node 目录下 发现项目已经部署在了workspace目录下 整个过程非常简单，每次上线之前，项目经理只需要检查各个组员的代码，然后统一合并到主分支master，最后进入jenkins点击部署按钮即可，节约了不少时间。  ">
+
+
+<meta itemprop="datePublished" content="2019-04-21T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-04-21T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="121">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目" />
+<meta property="og:description" content=" 在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目 一般情况下，将一个项目部署到生产环境的流程如下： 需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。 整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。 Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。 Jenkins主要有三种安装方式 下载官方war包，放到tomcat中直接运行。 yum安装。 使用官方docker镜像。 毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。 首先安装docker centos 安装docker 1 docker 要求 CentOS 系统的内核版本高于 3.10 ，查看本页面的前提条件来验证你的CentOS 版本是否支持 Docker 2、使用 root 权限登录 Centos。确保 yum 包更新到最新。 sudo yum update 3、卸载旧版本(如果安装过旧版本的话) sudo yum remove docker docker-common docker-selinux docker-engine 4、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的 sudo yum install -y yum-utils device-mapper-persistent-data lvm2 5、设置yum源 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 6、可以查看所有仓库中所有docker版本，并选择特定版本安装 yum list docker-ce --showduplicates | sort -r 7、安装docker sudo yum install docker-ce 8、启动并加入开机启动 sudo systemctl start docker sudo systemctl enable docker 9、验证安装是否成功(有client和service两部分表示docker安装启动都成功了) docker version 然后下载jenkins官方docker镜像 docker pull jenkins/jenkins 查看镜像 docker images 在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件 mkdir /root/j_node chmod 777 /root/j_node 后台将镜像以容器的形式起服务，对端口映射，同时把刚刚建立的目录挂载到容器中 docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins 这里注意，如果是阿里云的话，安全策略需要暴露8081端口 通过网址访问 http://你的ip:8081 然后通过命令获取安装秘钥 docker logs jenkins 有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。 完毕后，根据提示设置登陆账户 然后新建一个项目，在源代码控制那一栏，输入你的项目的线上git仓库地址，注意默认应该是master分支，因为生产环境部署的代码必须是主分支 保存后，点击Build Now进行部署，jenkins会自动去git版本库中抽取最新的master分支进行部署，同时每部署一次的历史记录都会被保存下来 此时，进入/root/j_node 目录下 发现项目已经部署在了workspace目录下 整个过程非常简单，每次上线之前，项目经理只需要检查各个组员的代码，然后统一合并到主分支master，最后进入jenkins点击部署按钮即可，节约了不少时间。  " />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/a22/" />
+<meta property="article:published_time" content="2019-04-21T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-04-21T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目"/>
+<meta name="twitter:description" content=" 在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目 一般情况下，将一个项目部署到生产环境的流程如下： 需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。 整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。 Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。 Jenkins主要有三种安装方式 下载官方war包，放到tomcat中直接运行。 yum安装。 使用官方docker镜像。 毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。 首先安装docker centos 安装docker 1 docker 要求 CentOS 系统的内核版本高于 3.10 ，查看本页面的前提条件来验证你的CentOS 版本是否支持 Docker 2、使用 root 权限登录 Centos。确保 yum 包更新到最新。 sudo yum update 3、卸载旧版本(如果安装过旧版本的话) sudo yum remove docker docker-common docker-selinux docker-engine 4、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的 sudo yum install -y yum-utils device-mapper-persistent-data lvm2 5、设置yum源 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 6、可以查看所有仓库中所有docker版本，并选择特定版本安装 yum list docker-ce --showduplicates | sort -r 7、安装docker sudo yum install docker-ce 8、启动并加入开机启动 sudo systemctl start docker sudo systemctl enable docker 9、验证安装是否成功(有client和service两部分表示docker安装启动都成功了) docker version 然后下载jenkins官方docker镜像 docker pull jenkins/jenkins 查看镜像 docker images 在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件 mkdir /root/j_node chmod 777 /root/j_node 后台将镜像以容器的形式起服务，对端口映射，同时把刚刚建立的目录挂载到容器中 docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins 这里注意，如果是阿里云的话，安全策略需要暴露8081端口 通过网址访问 http://你的ip:8081 然后通过命令获取安装秘钥 docker logs jenkins 有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。 完毕后，根据提示设置登陆账户 然后新建一个项目，在源代码控制那一栏，输入你的项目的线上git仓库地址，注意默认应该是master分支，因为生产环境部署的代码必须是主分支 保存后，点击Build Now进行部署，jenkins会自动去git版本库中抽取最新的master分支进行部署，同时每部署一次的历史记录都会被保存下来 此时，进入/root/j_node 目录下 发现项目已经部署在了workspace目录下 整个过程非常简单，每次上线之前，项目经理只需要检查各个组员的代码，然后统一合并到主分支master，最后进入jenkins点击部署按钮即可，节约了不少时间。  "/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Apr 21, 2019</span></div>
+				<h1>在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目</h1>
+			</header>
+			<div class="content">
+				
+
+<h1 id="在阿里云centos7-6上利用docker搭建jenkins来自动化部署django项目">在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目<a href="#在阿里云centos7-6上利用docker搭建jenkins来自动化部署django项目" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<pre><code>一般情况下，将一个项目部署到生产环境的流程如下：
+
+    需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。
+
+
+    整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。
+
+
+    Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。
+
+    
+
+    Jenkins主要有三种安装方式
+
+    下载官方war包，放到tomcat中直接运行。
+    yum安装。
+    使用官方docker镜像。
+
+    
+
+    毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。
+
+
+    首先安装docker
+
+    
+
+centos 安装docker
+1 docker 要求 CentOS 系统的内核版本高于 3.10 ，查看本页面的前提条件来验证你的CentOS 版本是否支持 Docker 
+2、使用 root 权限登录 Centos。确保 yum 包更新到最新。
+sudo yum update
+3、卸载旧版本(如果安装过旧版本的话)
+sudo yum remove docker  docker-common docker-selinux docker-engine
+4、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+5、设置yum源
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+6、可以查看所有仓库中所有docker版本，并选择特定版本安装
+ yum list docker-ce --showduplicates | sort -r
+7、安装docker
+sudo yum install docker-ce 
+8、启动并加入开机启动
+sudo systemctl start docker
+sudo systemctl enable docker
+9、验证安装是否成功(有client和service两部分表示docker安装启动都成功了)
+docker version
+
+然后下载jenkins官方docker镜像
+
+
+docker pull jenkins/jenkins
+
+查看镜像 docker images
+
+
+
+在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件
+
+
+mkdir /root/j_node
+chmod 777 /root/j_node
+
+后台将镜像以容器的形式起服务，对端口映射，同时把刚刚建立的目录挂载到容器中
+
+
+docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins
+
+这里注意，如果是阿里云的话，安全策略需要暴露8081端口
+
+通过网址访问 http://你的ip:8081
+
+然后通过命令获取安装秘钥
+
+
+docker logs jenkins
+
+有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。
+
+
+
+
+完毕后，根据提示设置登陆账户
+
+
+然后新建一个项目，在源代码控制那一栏，输入你的项目的线上git仓库地址，注意默认应该是master分支，因为生产环境部署的代码必须是主分支
+
+
+
+
+保存后，点击Build Now进行部署，jenkins会自动去git版本库中抽取最新的master分支进行部署，同时每部署一次的历史记录都会被保存下来
+
+
+
+此时，进入/root/j_node 目录下 发现项目已经部署在了workspace目录下
+
+
+
+
+整个过程非常简单，每次上线之前，项目经理只需要检查各个组员的代码，然后统一合并到主分支master，最后进入jenkins点击部署按钮即可，节约了不少时间。
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>121 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-04-21 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/a16/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Django通过xlwt用文件流的方式下载excel文档</span>
+			</a>
+			<a class="prev-post" href="/posts/a21/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>在阿里云服务器上使用Nginx部署https协议的网站</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

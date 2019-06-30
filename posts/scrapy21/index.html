@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis">
+<meta itemprop="description" content="在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。 而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。 说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬 首先分别在主机和从机上安装需要的爬虫库 pip3 install requests scrapy scrapy-redis redis 在主机中安装redis #安装redis yum install redis 启动服务 systemctl start redis 查看版本号 redis-cli --version 设置开机启动 systemctl enable redis.service 修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口 #bind 127.0.0.1 protected-mode no 改完配置后，别忘了重启服务才能生效 systemctl restart redis 然后分别新建爬虫项目 scrapy startproject myspider 在项目的spiders目录下新建test.py #导包 import scrapy import os from scrapy_redis.spiders import RedisSpider #定义抓取类 #class Test(scrapy.Spider): class Test(RedisSpider): #定义爬虫名称，和命令行运行时的名称吻合 name = &quot;test&quot; #定义redis的key redis_key = &#39;test:start_urls&#39; #定义头部信息 haders = { &#39;User-Agent&#39;: &#39;Mozilla/5.">
+
+
+<meta itemprop="datePublished" content="2017-08-10T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2017-08-10T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="143">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis" />
+<meta property="og:description" content="在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。 而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。 说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬 首先分别在主机和从机上安装需要的爬虫库 pip3 install requests scrapy scrapy-redis redis 在主机中安装redis #安装redis yum install redis 启动服务 systemctl start redis 查看版本号 redis-cli --version 设置开机启动 systemctl enable redis.service 修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口 #bind 127.0.0.1 protected-mode no 改完配置后，别忘了重启服务才能生效 systemctl restart redis 然后分别新建爬虫项目 scrapy startproject myspider 在项目的spiders目录下新建test.py #导包 import scrapy import os from scrapy_redis.spiders import RedisSpider #定义抓取类 #class Test(scrapy.Spider): class Test(RedisSpider): #定义爬虫名称，和命令行运行时的名称吻合 name = &quot;test&quot; #定义redis的key redis_key = &#39;test:start_urls&#39; #定义头部信息 haders = { &#39;User-Agent&#39;: &#39;Mozilla/5." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/scrapy21/" />
+<meta property="article:published_time" content="2017-08-10T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-08-10T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis"/>
+<meta name="twitter:description" content="在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。 而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。 说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬 首先分别在主机和从机上安装需要的爬虫库 pip3 install requests scrapy scrapy-redis redis 在主机中安装redis #安装redis yum install redis 启动服务 systemctl start redis 查看版本号 redis-cli --version 设置开机启动 systemctl enable redis.service 修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口 #bind 127.0.0.1 protected-mode no 改完配置后，别忘了重启服务才能生效 systemctl restart redis 然后分别新建爬虫项目 scrapy startproject myspider 在项目的spiders目录下新建test.py #导包 import scrapy import os from scrapy_redis.spiders import RedisSpider #定义抓取类 #class Test(scrapy.Spider): class Test(RedisSpider): #定义爬虫名称，和命令行运行时的名称吻合 name = &quot;test&quot; #定义redis的key redis_key = &#39;test:start_urls&#39; #定义头部信息 haders = { &#39;User-Agent&#39;: &#39;Mozilla/5."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Aug 10, 2017</span></div>
+				<h1>在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis</h1>
+			</header>
+			<div class="content">
+				
+
+<h1 id="在阿里云centos7-6上面部署基于redis的分布式爬虫scrapy-redis">在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis<a href="#在阿里云centos7-6上面部署基于redis的分布式爬虫scrapy-redis" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<pre><code>Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。
+
+    而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。
+
+    
+
+    
+
+    说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬
+
+    首先分别在主机和从机上安装需要的爬虫库
+
+    
+
+pip3 install requests scrapy scrapy-redis redis
+
+在主机中安装redis
+
+
+
+#安装redis
+yum install redis
+
+启动服务
+systemctl start redis
+
+查看版本号
+redis-cli --version
+
+设置开机启动
+systemctl enable redis.service
+
+
+修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口
+
+
+#bind 127.0.0.1
+protected-mode no
+
+改完配置后，别忘了重启服务才能生效
+
+
+systemctl restart redis
+
+然后分别新建爬虫项目
+
+
+scrapy startproject myspider
+在项目的spiders目录下新建test.py
+
+
+#导包
+import scrapy
+import os
+from scrapy_redis.spiders import RedisSpider
+
+#定义抓取类
+#class Test(scrapy.Spider):
+class Test(RedisSpider):
+
+    #定义爬虫名称，和命令行运行时的名称吻合
+    name = &quot;test&quot;
+
+    #定义redis的key
+    redis_key = 'test:start_urls'
+
+    #定义头部信息
+    haders = {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36'
+    }
+
+    def parse(self, response):
+        print(response.url)
+        pass
+
+然后修改配置文件settings.py，增加下面的配置,其中redis地址就是在主机中配置好的redis地址:
+
+
+BOT_NAME = 'myspider'
+
+SPIDER_MODULES = ['myspider.spiders']
+NEWSPIDER_MODULE = 'myspider.spiders'
+
+#设置中文编码
+FEED_EXPORT_ENCODING = 'utf-8'
+
+# scrapy-redis 主机地址
+REDIS_URL = 'redis://root@39.106.228.179:6379'
+#队列调度
+SCHEDULER = &quot;scrapy_redis.scheduler.Scheduler&quot;
+#不清除缓存
+SCHEDULER_PERSIST = True
+#通过redis去重
+DUPEFILTER_CLASS = &quot;scrapy_redis.dupefilter.RFPDupeFilter&quot;
+#不遵循robots
+ROBOTSTXT_OBEY = False
+
+最后，可以在两台主机上分别启动scrapy服务
+
+
+scrapy crawl test
+
+此时，服务已经起来了，只不过redis队列中没有任务，在等待状态
+
+进入主机的redis
+
+
+redis-cli
+
+将任务队列push进redis
+
+
+lpush test:start_urls http://baidu.com
+lpush test:start_urls http://chouti.com
+可以看到，两台服务器的爬虫服务分别领取了队列中的任务进行抓取，同时利用redis的特性，url不会重复抓取
+
+
+
+爬取任务结束之后，可以通过flushdb命令来清除地址指纹，这样就可以再次抓取历史地址了。
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>143 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2017-08-10 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/scripy1/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>selenium登陆qq邮箱页面</span>
+			</a>
+			<a class="prev-post" href="/posts/mysql/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>mysql 聚合函数</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="open-falcon入门篇">
+<meta itemprop="description" content="open-falcon入门篇  openfalcon官网： https://book.open-falcon.org/zh/ 1、openfalcon特点 1. 数据采集免配置： 无需预定义agent自动发现、支持plugin、支持主动push 2. 容量水平扩展： 生产环境每秒20多万此数据收集、告警、存储、绘图 3. 告警策略易于管理： 支持策略模板、模板继承和覆盖、报警接收人为用户组 4. 报警事件自动化处理： 触发阀值之后支持callback，便于嵌入自动化逻辑 5. 人性化告警设置： 支持最大告警次数、告警级别、告警恢复通知、告警暂停、不同时段不同阀值、支持维护周期、支持报警合并 6. 历史数据高效查询： 秒级返回上百个指标一年的历史数据 7. 架构设计高可用： 整个系统同核心单点、易运维、易部署 2、openfalcon与zabbix比优点 1. 模板支持继承的同时支持覆盖策略项 2. 数据采集免配置，节省人力成本 3. 较为强大的数据模型 4. tag化描述告警策略each(metric=qps project=falcon module=jedge)&gt;100 5. 水平扩展，多IDC支持 1.2 open-falcon架构 返回顶部 part01：数据采集&amp;上报 1、agent（数据采集组件）：golang项目 1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标 2. agent提供了一个http接口/v1/push用于接收用户手工push的一些数据，然后通过长连接迅速转发给Transfer。 3. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。 2、 transfer（数据上报） 1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。 2. 将数据分发给judge进程和graph进程，供告警判定和绘图。 部署说明： 部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。 在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。 part02: 告警 3、judge（告警判断） 1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。 2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。 3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。 部署说明： Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。 推荐一个Judge实例处理50万~100万数据，用个5G~10G内存的服务器。 4、Alarm（告警） https://book.">
+
+
+<meta itemprop="datePublished" content="2019-02-19T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-02-19T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="149">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="open-falcon入门篇" />
+<meta property="og:description" content="open-falcon入门篇  openfalcon官网： https://book.open-falcon.org/zh/ 1、openfalcon特点 1. 数据采集免配置： 无需预定义agent自动发现、支持plugin、支持主动push 2. 容量水平扩展： 生产环境每秒20多万此数据收集、告警、存储、绘图 3. 告警策略易于管理： 支持策略模板、模板继承和覆盖、报警接收人为用户组 4. 报警事件自动化处理： 触发阀值之后支持callback，便于嵌入自动化逻辑 5. 人性化告警设置： 支持最大告警次数、告警级别、告警恢复通知、告警暂停、不同时段不同阀值、支持维护周期、支持报警合并 6. 历史数据高效查询： 秒级返回上百个指标一年的历史数据 7. 架构设计高可用： 整个系统同核心单点、易运维、易部署 2、openfalcon与zabbix比优点 1. 模板支持继承的同时支持覆盖策略项 2. 数据采集免配置，节省人力成本 3. 较为强大的数据模型 4. tag化描述告警策略each(metric=qps project=falcon module=jedge)&gt;100 5. 水平扩展，多IDC支持 1.2 open-falcon架构 返回顶部 part01：数据采集&amp;上报 1、agent（数据采集组件）：golang项目 1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标 2. agent提供了一个http接口/v1/push用于接收用户手工push的一些数据，然后通过长连接迅速转发给Transfer。 3. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。 2、 transfer（数据上报） 1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。 2. 将数据分发给judge进程和graph进程，供告警判定和绘图。 部署说明： 部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。 在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。 part02: 告警 3、judge（告警判断） 1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。 2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。 3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。 部署说明： Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。 推荐一个Judge实例处理50万~100万数据，用个5G~10G内存的服务器。 4、Alarm（告警） https://book." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/a12/" />
+<meta property="article:published_time" content="2019-02-19T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-02-19T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="open-falcon入门篇"/>
+<meta name="twitter:description" content="open-falcon入门篇  openfalcon官网： https://book.open-falcon.org/zh/ 1、openfalcon特点 1. 数据采集免配置： 无需预定义agent自动发现、支持plugin、支持主动push 2. 容量水平扩展： 生产环境每秒20多万此数据收集、告警、存储、绘图 3. 告警策略易于管理： 支持策略模板、模板继承和覆盖、报警接收人为用户组 4. 报警事件自动化处理： 触发阀值之后支持callback，便于嵌入自动化逻辑 5. 人性化告警设置： 支持最大告警次数、告警级别、告警恢复通知、告警暂停、不同时段不同阀值、支持维护周期、支持报警合并 6. 历史数据高效查询： 秒级返回上百个指标一年的历史数据 7. 架构设计高可用： 整个系统同核心单点、易运维、易部署 2、openfalcon与zabbix比优点 1. 模板支持继承的同时支持覆盖策略项 2. 数据采集免配置，节省人力成本 3. 较为强大的数据模型 4. tag化描述告警策略each(metric=qps project=falcon module=jedge)&gt;100 5. 水平扩展，多IDC支持 1.2 open-falcon架构 返回顶部 part01：数据采集&amp;上报 1、agent（数据采集组件）：golang项目 1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标 2. agent提供了一个http接口/v1/push用于接收用户手工push的一些数据，然后通过长连接迅速转发给Transfer。 3. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。 2、 transfer（数据上报） 1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。 2. 将数据分发给judge进程和graph进程，供告警判定和绘图。 部署说明： 部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。 在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。 part02: 告警 3、judge（告警判断） 1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。 2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。 3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。 部署说明： Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。 推荐一个Judge实例处理50万~100万数据，用个5G~10G内存的服务器。 4、Alarm（告警） https://book."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>open-falcon入门篇</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 19, 2019</span></div>
+				<h1>open-falcon入门篇</h1>
+			</header>
+			<div class="content">
+				
+
+<h1 id="open-falcon入门篇">open-falcon入门篇<a href="#open-falcon入门篇" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<pre><code> openfalcon官网： https://book.open-falcon.org/zh/
+
+ 　　1、openfalcon特点
+
+　　　　　　1. 数据采集免配置： 无需预定义agent自动发现、支持plugin、支持主动push
+
+　　　　　　2. 容量水平扩展： 生产环境每秒20多万此数据收集、告警、存储、绘图
+
+　　　　　　3. 告警策略易于管理： 支持策略模板、模板继承和覆盖、报警接收人为用户组
+
+　　　　　　4. 报警事件自动化处理： 触发阀值之后支持callback，便于嵌入自动化逻辑
+
+　　　　　　5. 人性化告警设置： 支持最大告警次数、告警级别、告警恢复通知、告警暂停、不同时段不同阀值、支持维护周期、支持报警合并
+
+　　　　　　6. 历史数据高效查询： 秒级返回上百个指标一年的历史数据
+
+　　　　　　7. 架构设计高可用： 整个系统同核心单点、易运维、易部署
+
+　　2、openfalcon与zabbix比优点
+
+　　　　　　1. 模板支持继承的同时支持覆盖策略项
+
+　　　　　　2. 数据采集免配置，节省人力成本
+
+　　　　　　3. 较为强大的数据模型
+
+　　　　　　4. tag化描述告警策略each(metric=qps project=falcon module=jedge)&gt;100
+
+　　　　　　5. 水平扩展，多IDC支持
+
+1.2 open-falcon架构     返回顶部
+            
+
+　　part01：数据采集&amp;上报
+
+　　1、agent（数据采集组件）：golang项目
+
+　　　　　　1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标
+
+　　　　　　2. agent提供了一个http接口/v1/push用于接收用户手工push的一些数据，然后通过长连接迅速转发给Transfer。
+
+　　　　　　3. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。
+
+　　2、 transfer（数据上报）
+
+　　　　　　1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。
+
+　　　　　　2. 将数据分发给judge进程和graph进程，供告警判定和绘图。
+
+　　　　　　部署说明：
+
+　　　　　　　　部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。
+
+　　　　　　　　在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。
+
+　　part02: 告警
+
+　　3、judge（告警判断）
+
+　　　　　　1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。
+
+　　　　　　2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。
+
+　　　　　　3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。
+
+　　　　　　部署说明：
+
+　　　　　　　　Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。
+
+　　　　　　　　推荐一个Judge实例处理50万~100万数据，用个5G~10G内存的服务器。
+
+　　4、Alarm（告警）
+
+　　　　　　https://book.open-falcon.org/zh_0_2/distributed_install/alarm.html
+
+　　　　　　1. Alarm进程监听Redis中的消息队列，并将judge产生的告警事件转发给微信、短信和邮件三种REST接口，REST接口才是具体的发送动作。
+
+　　　　　　2. 另外，关于告警，每条告警策略都会定义不同的优先级，Redis中的消息队列也按优先级划分。
+
+　　　　　　3. Alarm不仅消费告警事件，优先级比较低的报警，其合并逻辑都是在alarm中做，所以目前Alarm进程只能部署一个实例。
+
+　　　　　　4. 已经发送出去的告警事件，Alarm将会负责写入MySQL。
+
+　　　　　　说明：
+
+　　　　　　　　1）我们在配置报警策略的时候配置了报警级别，比如P0/P1/P2等等，每个及别的报警都会对应不同的redis队列 
+
+　　　　　　　　2）alarm去读取这个数据的时候我们希望先读取P0的数据，再读取P1的数据，最后读取P5的数据，因为我们希望先处理优先级高的。
+
+　　　　　　　　3）已经发送的告警信息，alarm会写入MySQL中保存，这样用户就可以在dashboard中查阅历史报警。
+
+　　　　　　　　4）针对同一个策略发出的多条报警，在MySQL存储的时候，会聚类；历史报警保存的周期，是可配置的，默认为7天。
+
+　　　　　　注：alarm是个单点。对于未恢复的告警是放到alarm的内存中的，alarm还需要做报警合并，故而alarm只能部署一个实例。后期需要想办法改进。
+
+　　part03：归档&amp;绘图
+
+　　5、graph（数据存储&amp;归档）
+
+　　　　　　1. graph进程接收从transfer推送来的指标数据，操作rrd文件存储监控数据。
+
+　　　　　　2. graph也为API进程提供查询接口，处理query组件的查询请求、返回绘图数据。
+
+　　6、API（提供统一的restAPI操作接口） ：go的后端模块
+
+　　　　　　1. API组件，提供统一的绘图数据查询入口 （提供http接口））。
+
+　　　　　　2. API组件接收查询请求，根据一致性哈希算法去相应的graph实例查询不同metric的数据，然后汇总拿到的数据，最后统一返回给用户。
+
+　　　　　　补充说明：
+
+　　　　　　　　部署完成api组件后，请修改dashboard组件的配置、使其能够正确寻址到api组件。
+
+　　　　　　　　请确保api组件的graph列表 与 transfer的配置 一致。
+
+　　8、dashboard（趋势图web界面）：python的web项目
+
+　　　　　　1. dashboard是面向用户的查询界面，在这里，用户可以看到push到graph中的所有数据，并查看其趋势图。
+
+　　　　　　2. dashboard模块配置 报警策略，并把策略同步给：aggregator、nodata、grafana。
+
+　　9、Aggregator
+
+　　　　　　1. 集群聚合模块，聚合某集群下的所有机器的某个指标的值，提供一种集群视角的监控体验。
+
+　　10、Nodata
+
+　　　　　　1. nodata用于检测监控数据的上报异常。
+
+　　　　　　2. nodata和实时报警judge模块协同工作，过程为: 配置了nodata的采集项超时未上报数据，nodata生成一条默认的模拟数据；
+
+　　　　　　3. 用户配置相应的报警策略，收到mock数据就产生报警。
+
+　　　　　　4. 采集项上报异常检测，作为judge模块的一个必要补充，能够使judge的实时报警功能更加可靠、完善。
+
+　　11、grafana（生成更详细图形）
+
+ 
+
+　　part04：报警策略配置
+
+　　12、web portal（报警策略配置）：最新open-falcon中此模块功能合并到Dashboard模块中
+
+　　　　　　1. web portal是python写的django项目，用户可以在这里配置报警策略，存入mysql
+
+　　　　　　2. Portal的数据库中有一个host表，维护了公司所有机器的信息，比如hostname、ip等等。
+
+　　　　　　3. HBS会将agent发送心跳信息给HBS的时候的hostname、ip等信息告诉HBS，HBS负责更新host表。
+
+　　13、hbs：Heartbeat server（心跳服务）
+
+　　　　　　1. 功能1： agent发送心跳信息给HBS的时，会把hostname、ip、agent version、plugin version等信息告诉HBS，HBS负责更新web portal 的host表。
+
+　　　　　　2. 功能2： hbs会从从dashboard模块中获取 报警策略配置 并缓存到本地，所有Judge从hbs中获取报警策略
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>149 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-02-19 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/a13/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>openf-falcon安装</span>
+			</a>
+			<a class="prev-post" href="/posts/a11/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>saltstack-api使用详解</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

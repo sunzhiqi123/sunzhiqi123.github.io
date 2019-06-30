@@ -6,8 +6,4493 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Tue, 10 Apr 2018 00:00:00 +0000</lastBuildDate>
+		<lastBuildDate>Tue, 23 Apr 2019 00:00:00 +0000</lastBuildDate>
 		<atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>在Centos下使用Siege对Django服务进行压力测试</title>
+			<link>/posts/a24/</link>
+			<pubDate>Tue, 23 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a24/</guid>
+			<description>在Centos下使用Siege对Django服务进行压力测试  Siege是linux下的一个web系统的压力测试工具，支持多链接，支持get和post请求，可以对web系统进行多并发下持续请求的压力测试。今天我们就使用Siege来对Django进行一次压力测试，看看单台Django服务到底能抗住多少的并发数。 首先安装Siege wget http://download.joedog.org/siege/siege-3.0.8.tar.gz tar zxvf siege-3.0.8.tar.gz cd siege-3.0.8 ./configure make make install 验证安装结果：输入siege -V 如果输出了版本号就代表安装没问题 Siege命令常用参数 -c 200 指定并发数200 -r 5 指定测试的次数5 -f urls.txt 制定url的文件 -i internet系统，随机发送url -b 请求无需等待 delay=0 -t 5 持续测试5分钟 测试指标说明： Transactions: 4 hits 完成4次处理 Availability: 100.00 % 成功率 Elapsed time: 1.19 secs 总共用时 Data transferred: 0.03MB 共数据传输：0.03MB Response time: 0.13 secs 相应用时0.13秒，显示网络连接的速度 Transaction rate: 3.36 trans/sec平均每秒完成3.36次处理，表示服务器后台处理的速度 Throughput: 0.03MB/sec 平均每秒传送数据：0.03MB Concurrency: 0.45 最高并发数 0.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="在centos下使用siege对django服务进行压力测试">在Centos下使用Siege对Django服务进行压力测试</h1>
+
+<pre><code>   Siege是linux下的一个web系统的压力测试工具，支持多链接，支持get和post请求，可以对web系统进行多并发下持续请求的压力测试。今天我们就使用Siege来对Django进行一次压力测试，看看单台Django服务到底能抗住多少的并发数。
+
+    首先安装Siege
+
+    
+
+wget http://download.joedog.org/siege/siege-3.0.8.tar.gz
+tar zxvf siege-3.0.8.tar.gz
+cd siege-3.0.8
+./configure
+make
+make install
+
+验证安装结果：输入siege -V 如果输出了版本号就代表安装没问题
+
+Siege命令常用参数
+
+
+-c 200 指定并发数200
+-r 5 指定测试的次数5
+-f urls.txt 制定url的文件
+-i internet系统，随机发送url
+-b 请求无需等待 delay=0
+-t 5 持续测试5分钟
+
+
+测试指标说明：
+
+
+Transactions: 4 hits 完成4次处理 
+Availability: 100.00 % 成功率 
+Elapsed time: 1.19 secs 总共用时
+Data transferred: 0.03MB 共数据传输：0.03MB
+Response time: 0.13 secs 相应用时0.13秒，显示网络连接的速度
+Transaction rate: 3.36 trans/sec平均每秒完成3.36次处理，表示服务器后台处理的速度
+Throughput: 0.03MB/sec 平均每秒传送数据：0.03MB
+Concurrency: 0.45 最高并发数 0.45
+Successful transactions: 4成功处理次数
+Failed transactions: 0 失败处理次数
+Longest  transaction：0.25请求最长响应时间/每次传输所花最长时间
+Shortest  transaction：0.09请求最短响应时间/每次传输所花最短时间
+
+主要参考指标是 Transaction rate
+
+
+测试背景:  
+
+
+软件：python3.7.2 Django2.0.4 
+
+硬件 内存:1g cpu:1个1核  这个硬件配置有点惨，没办法了，因为没钱买好的
+
+业务场景：Django使用mysql进行普通的读操作，没有使用任何缓存
+
+压测命令：255个用户并发访问localhost:8000，持续时间为1分钟
+
+
+siege -c255 -t60S -v -b 127.0.0.1:8000
+
+
+首先使用runserver的起服务方式进行压测：
+
+
+python3 manage.py runserver 0.0.0.0:8000
+
+
+
+可以看到，这个有点凄惨，每秒后台只能处理166的请求，失败次数也有点高，更加说明了，runserver最好就是本地调试开发的时候用用就可以了，在生产环境使用runserver无异于自杀，不过在一些测试服务器上，如果懒得搭建uwsgi或者gunicorn，可以使用nohup配合runserver临时用一下。
+
+
+使用uwsgi来起服务，uwsgi作为一款高性能的服务器，安装方式请见：https://v3u.cn/a_id_72 起8个worker
+
+
+uwsgi --http :8000 --module mypro.wsgi --processes 8
+
+
+
+可以看到使用了uwsgi的提升还是很可观的，失败次数也减少了一半左右
+
+
+    最后，我们来试一试Gunicorn
+
+    Gunicorn是使用Python实现的WSGI服务器, 直接提供了http服务, 并且在woker上提供了多种选择, gevent, eventlet这些都支持, 在多worker最大化里用CPU的同时, 还可以使用协程来提供并发支撑, 对于网络IO密集的服务比较有利
+
+安装 gunicorn
+
+
+pip3 install gunicorn
+
+起4个worker,50个线程
+
+
+gunicorn --env DJANGO_SETTINGS_MODULE=mypro.settings mypro.wsgi:application -w 4 -b 0.0.0.0:8000 -k gthread --threads 50
+
+
+
+可以看到性能上和uwsgi差不太多，但是失败数比较多。以1g1核的服务器，并发阈值也就在200左右了。
+
+
+    综上，单以性能论，Django的表现并非很好，但是你不能忽略它的学习成本低，简单并且容易上手的优势，鱼与熊掌不能兼得，如果要求高性能，可以试试tornado, 如果tornado依然无法满足，可以尝试使用golang，毕竟golang是以高并发著称的编译语言，而且基于它的web框架也很容易上手，性能很可观，例如Iris。
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离</title>
+			<link>/posts/a23/</link>
+			<pubDate>Mon, 22 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a23/</guid>
+			<description>#在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离
+在之前的一篇文章中，阐述了如何在高并发高负载的场景下使用nginx做后台服务的负载均衡:在阿里云Centos上配置nginx+uwsgi+负载均衡配置,但是不要以为这样做了就是一劳永逸的，到了数据业务层、数据访问层，如果还是传统的数据结构，或者只是单单靠一台服务器负载，如此多的数据库连接操作，数据库必然会崩溃，数据库如果宕机的话，后果更是不堪设想。这时候，我们会考虑如何减少数据库的连接，一方面采用优秀的代码框架，进行代码的优化，采用优秀的数据缓存技术如：redis,如果资金丰厚的话，必然会想到架设mysql服务集群，来分担主数据库的压力。今天总结一下利用MySQL主从配置，实现读写分离，减轻数据库压力。 明确目的，部署mysql集群，采用一主一从的策略，写入操作使用主库，从库实时同步主库的数据，从库负责读取的业务，从而完成读写分离的目的。 mysql主从同步的原理很简单，从库生成两个线程，一个I/O线程，一个SQL线程；i/o线程去请求主库 的binlog（二进制日志），并将得到的binlog日志写到relay log（中继日志） 文件中；主库会生成一个 log dump 线程，用来给从库 i/o线程传binlog； SQL 线程，会读取relay log文件中的日志，并解析成具体操作，来实现主从的操作一致，而最终数据一致。 首先准备两台阿里云服务器，一台作为主机(master)，一台作为从机(slave)，都安装好mysql5.7，具体怎样安装mysql服务请移步：https://v3u.cn/a_id_72 进入master服务器 修改mysql配置文件 vim /etc/my.cnf，加入如下配置 server-id=1 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-1 配置说明： #设置主服务 的ID (id可以自己随便设置但是要保证和slave的id不一样) server-id=1 #设为1当然是最安全的，但性能也是最差的（相对其他两个参数而言，但不是不能接受）。如果对数据一致性和完整性要求不高，完全可以设为2，如果只最求性能，例如高并发写的日志服务器，设为0来获得更高性能 innodb_flush_log_at_trx_commit=2 #开启binlog 志同步功能 sync_binlog=1 #binlog 日志文件名 log-bin=mysql-bin-200 # 这个表示只同步某个库 (如果没有此项，表示同步所有的库) binlog-do-db=xxxx 保存后，重启mysql systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入授权命令 GRANT REPLICATION SLAVE ON *.* to &#39;repl&#39;@&#39;%&#39; identified by &#39;Admin123!&#39;; 意思是所有slave都可以通过账号repl和密码Admin123!来同步master的数据 然后查看master的状态: show master status; 把file列和Position列记录下来，一会配置slave要用到 此时Master的配置已经搞定，登录一下从机(slave) 同理修改slave服务器的mysql配置 vim /etc/my.cnf 加入下面的配置，需要注意的是server-id不要和master一样 server-id=201 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-201 保存后重启服务 systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入命令： change master to master_host=&#39;39.</description>
+			<content type="html"><![CDATA[<p>#在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离</p>
+
+<pre><code>在之前的一篇文章中，阐述了如何在高并发高负载的场景下使用nginx做后台服务的负载均衡:在阿里云Centos上配置nginx+uwsgi+负载均衡配置,但是不要以为这样做了就是一劳永逸的，到了数据业务层、数据访问层，如果还是传统的数据结构，或者只是单单靠一台服务器负载，如此多的数据库连接操作，数据库必然会崩溃，数据库如果宕机的话，后果更是不堪设想。这时候，我们会考虑如何减少数据库的连接，一方面采用优秀的代码框架，进行代码的优化，采用优秀的数据缓存技术如：redis,如果资金丰厚的话，必然会想到架设mysql服务集群，来分担主数据库的压力。今天总结一下利用MySQL主从配置，实现读写分离，减轻数据库压力。
+
+    明确目的，部署mysql集群，采用一主一从的策略，写入操作使用主库，从库实时同步主库的数据，从库负责读取的业务，从而完成读写分离的目的。
+
+    mysql主从同步的原理很简单，从库生成两个线程，一个I/O线程，一个SQL线程；i/o线程去请求主库 的binlog（二进制日志），并将得到的binlog日志写到relay log（中继日志） 文件中；主库会生成一个 log dump 线程，用来给从库 i/o线程传binlog；
+
+    SQL 线程，会读取relay log文件中的日志，并解析成具体操作，来实现主从的操作一致，而最终数据一致。
+
+    
+
+    首先准备两台阿里云服务器，一台作为主机(master)，一台作为从机(slave)，都安装好mysql5.7，具体怎样安装mysql服务请移步：https://v3u.cn/a_id_72
+
+    进入master服务器
+
+    修改mysql配置文件 vim /etc/my.cnf，加入如下配置
+
+    
+
+server-id=1
+innodb_flush_log_at_trx_commit=2
+sync_binlog=1
+log-bin=mysql-bin-1
+
+    
+
+配置说明：
+
+#设置主服务 的ID (id可以自己随便设置但是要保证和slave的id不一样)
+server-id=1
+
+#设为1当然是最安全的，但性能也是最差的（相对其他两个参数而言，但不是不能接受）。如果对数据一致性和完整性要求不高，完全可以设为2，如果只最求性能，例如高并发写的日志服务器，设为0来获得更高性能
+innodb_flush_log_at_trx_commit=2
+
+#开启binlog 志同步功能
+sync_binlog=1 
+
+#binlog 日志文件名
+log-bin=mysql-bin-200 
+
+# 这个表示只同步某个库 (如果没有此项，表示同步所有的库)
+binlog-do-db=xxxx 
+
+保存后，重启mysql
+
+
+systemctl restart mysqld
+进入mysql命令行 mysql -uroot -p你的密码
+
+输入授权命令
+
+
+GRANT REPLICATION SLAVE ON *.* to 'repl'@'%' identified by 'Admin123!'; 
+
+意思是所有slave都可以通过账号repl和密码Admin123!来同步master的数据
+
+然后查看master的状态:
+
+
+show master status;
+
+
+
+把file列和Position列记录下来，一会配置slave要用到
+
+
+此时Master的配置已经搞定，登录一下从机(slave)
+
+同理修改slave服务器的mysql配置 vim /etc/my.cnf 加入下面的配置，需要注意的是server-id不要和master一样
+
+
+server-id=201 
+innodb_flush_log_at_trx_commit=2 
+sync_binlog=1 
+log-bin=mysql-bin-201
+保存后重启服务 systemctl restart mysqld
+
+
+进入mysql命令行 mysql -uroot -p你的密码
+
+输入命令：
+
+
+change master to master_host='39.106.228.179',master_user='repl' ,master_password='Admin123!', master_log_file='mysql-bin.000002' ,master_log_pos=154
+命令说明：
+
+master_host: 主机的ip
+
+master_user : 主机授权的用户.
+
+master_password : 主机授权时候填写的密码
+
+master_log_file : 主机show master status;中的File
+
+master_log_pos: 主机show master status;中的Position.
+
+输入命令启动slave
+
+
+start slave; 可以查看slave的状态:
+
+
+show slave status G;
+然后我们就可以测试一下对master进行写入，看看salve是否可以同步数据了
+
+
+
+
+当然了，mysql的读写分离主从配置并不是万能的，根据不同的应用场景选择不同的策略，MySQL的主从复制功能有一定的延迟性，如果对数据实时一致性的要求比较高的场景不推荐使用。
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Django通过xlwt用文件流的方式下载excel文档</title>
+			<link>/posts/a16/</link>
+			<pubDate>Sun, 21 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a16/</guid>
+			<description>python3.7.2+Django2.0.4 使用django-celery遇到的那些坑 1 首先为啥要用celery 因为在Django Web平台开发中，碰到一些请求执行的任务时间较长（几分钟），为了加快用户的响应时间，因此决定采用异步任务的方式在后台执行这些任务。与此同时，celery除了异步任务，还可以开启定时任务，方便调度。 2 安装需要的软件包 pip install celery pip install celery-with-redis pip install django-celery 3 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于： /kombu/async /celery/utils/timer2.py /concurrency/asynpool.py /kombu/transport/redis.py /celery/worker/auto_scale.py,components,consumer,strategy 4 配置settings.py INSTALLED_APPS = ( ... &#39;djcelery&#39;, } # 末尾初始化 import djcelery djcelery.setup_loader() BROKER_URL = &#39;redis://127.0.0.1:6379/0&#39; CELERY_IMPORTS = (&#39;应用名称.task&#39;) 5 新增task.py #导入异步任务 from celery.task import task #导入定时任务库 from celery.decorators import periodic_task #利用参数来设置任务周期 @periodic_task(run_every=10) def some_task(): print(&#39;每10秒执行一次&#39;) time.sleep(5) print(&#39;执行完毕&#39;) return True #通过装饰器来注册异步任务 @task def task_mail(): #实例化一个对象 sendmail = SendMail(&#39;欢迎注册&#39;,&#39;您的验证码是1324&#39;, [&#39;599954144@qq.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="python3-7-2-django2-0-4-使用django-celery遇到的那些坑">python3.7.2+Django2.0.4 使用django-celery遇到的那些坑</h1>
+
+<pre><code>1 首先为啥要用celery
+  
+  因为在Django Web平台开发中，碰到一些请求执行的任务时间较长（几分钟），为了加快用户的响应时间，因此决定采用异步任务的方式在后台执行这些任务。与此同时，celery除了异步任务，还可以开启定时任务，方便调度。
+
+
+  2 安装需要的软件包
+  
+  
+pip install celery
+
+pip install celery-with-redis
+
+pip install django-celery
+
+
+  3 因为async这个单词在python3.7中已经作为系统关键字存在了，所以要把所有涉及到这个关键字的文件都要改掉，涉及的文件列表包含但不限于：
+
+  
+/kombu/async
+
+/celery/utils/timer2.py
+
+/concurrency/asynpool.py
+
+/kombu/transport/redis.py
+
+/celery/worker/auto_scale.py,components,consumer,strategy
+
+  4 配置settings.py
+
+  
+INSTALLED_APPS = (
+   ...
+   'djcelery',
+  }
+# 末尾初始化
+import djcelery
+djcelery.setup_loader()
+BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_IMPORTS = ('应用名称.task')
+
+  5 新增task.py
+
+  
+#导入异步任务
+from celery.task import task
+#导入定时任务库
+from celery.decorators import periodic_task
+  
+#利用参数来设置任务周期
+@periodic_task(run_every=10)
+def some_task():
+    print('每10秒执行一次')
+    time.sleep(5)
+    print('执行完毕')
+    return True
+
+#通过装饰器来注册异步任务
+@task
+def task_mail():
+    #实例化一个对象
+    sendmail = SendMail('欢迎注册','您的验证码是1324',   ['599954144@qq.com'],DEFAULT_FROM_EMAIL)
+    status = sendmail.do_send_mail()
+    if status:
+        print('发送邮件成功')
+    else:
+        print('发送邮件失败')
+
+  6 新增celery.py
+
+  
+import os
+import django
+from celery import Celery
+from django.conf import settings 
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mymac.settings')
+django.setup()
+app = Celery('mymac')
+app.config_from_object('django.conf:settings')
+app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+@app.task(bind=True)
+def debug_task(self):
+    print('Request: {0!r}'.format(self.request))
+
+  7 启动服务
+
+  
+#异步服务
+celery -A mymac worker -l info  
+#定时任务服务
+celery -A myproject beat -l info
+
+  8 但是执行异步任务的时候发现服务自动断掉，是因为python库里的redis版本太高了。。。所以通过pip卸载，然后指定安装低版本2.6.10
+
+  
+pip uninstall redis
+pip install redis==2.6.10
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目</title>
+			<link>/posts/a22/</link>
+			<pubDate>Sun, 21 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a22/</guid>
+			<description> 在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目 一般情况下，将一个项目部署到生产环境的流程如下： 需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。 整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。 Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。 Jenkins主要有三种安装方式 下载官方war包，放到tomcat中直接运行。 yum安装。 使用官方docker镜像。 毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。 首先安装docker centos 安装docker 1 docker 要求 CentOS 系统的内核版本高于 3.10 ，查看本页面的前提条件来验证你的CentOS 版本是否支持 Docker 2、使用 root 权限登录 Centos。确保 yum 包更新到最新。 sudo yum update 3、卸载旧版本(如果安装过旧版本的话) sudo yum remove docker docker-common docker-selinux docker-engine 4、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的 sudo yum install -y yum-utils device-mapper-persistent-data lvm2 5、设置yum源 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 6、可以查看所有仓库中所有docker版本，并选择特定版本安装 yum list docker-ce --showduplicates | sort -r 7、安装docker sudo yum install docker-ce 8、启动并加入开机启动 sudo systemctl start docker sudo systemctl enable docker 9、验证安装是否成功(有client和service两部分表示docker安装启动都成功了) docker version 然后下载jenkins官方docker镜像 docker pull jenkins/jenkins 查看镜像 docker images 在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件 mkdir /root/j_node chmod 777 /root/j_node 后台将镜像以容器的形式起服务，对端口映射，同时把刚刚建立的目录挂载到容器中 docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins 这里注意，如果是阿里云的话，安全策略需要暴露8081端口 通过网址访问 http://你的ip:8081 然后通过命令获取安装秘钥 docker logs jenkins 有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。 完毕后，根据提示设置登陆账户 然后新建一个项目，在源代码控制那一栏，输入你的项目的线上git仓库地址，注意默认应该是master分支，因为生产环境部署的代码必须是主分支 保存后，点击Build Now进行部署，jenkins会自动去git版本库中抽取最新的master分支进行部署，同时每部署一次的历史记录都会被保存下来 此时，进入/root/j_node 目录下 发现项目已经部署在了workspace目录下 整个过程非常简单，每次上线之前，项目经理只需要检查各个组员的代码，然后统一合并到主分支master，最后进入jenkins点击部署按钮即可，节约了不少时间。  </description>
+			<content type="html"><![CDATA[
+
+<h1 id="在阿里云centos7-6上利用docker搭建jenkins来自动化部署django项目">在阿里云Centos7.6上利用docker搭建Jenkins来自动化部署Django项目</h1>
+
+<pre><code>一般情况下，将一个项目部署到生产环境的流程如下：
+
+    需求分析—原型设计—开发代码—内网部署-提交测试—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。
+
+
+    整个过程相当复杂而漫长，其中还需要输入不少的命令，比如上传代码，git的拉取或者合并分支等等。
+
+
+    Jenkins是目前非常流行的一款持续集成工具，可以帮助大家把更新后的代码自动部署到服务器上运行，整个流程非常自动化，你可以理解为部署命令操作的可视化界面。
+
+    
+
+    Jenkins主要有三种安装方式
+
+    下载官方war包，放到tomcat中直接运行。
+    yum安装。
+    使用官方docker镜像。
+
+    
+
+    毫无疑问，既然有docker这么简单方便的工具，就没必要选择前两种复杂的安装方式了。
+
+
+    首先安装docker
+
+    
+
+centos 安装docker
+1 docker 要求 CentOS 系统的内核版本高于 3.10 ，查看本页面的前提条件来验证你的CentOS 版本是否支持 Docker 
+2、使用 root 权限登录 Centos。确保 yum 包更新到最新。
+sudo yum update
+3、卸载旧版本(如果安装过旧版本的话)
+sudo yum remove docker  docker-common docker-selinux docker-engine
+4、安装需要的软件包， yum-util 提供yum-config-manager功能，另外两个是devicemapper驱动依赖的
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+5、设置yum源
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+6、可以查看所有仓库中所有docker版本，并选择特定版本安装
+ yum list docker-ce --showduplicates | sort -r
+7、安装docker
+sudo yum install docker-ce 
+8、启动并加入开机启动
+sudo systemctl start docker
+sudo systemctl enable docker
+9、验证安装是否成功(有client和service两部分表示docker安装启动都成功了)
+docker version
+
+然后下载jenkins官方docker镜像
+
+
+docker pull jenkins/jenkins
+
+查看镜像 docker images
+
+
+
+在主机上创建目录，并添加读写权限以便jenkins应用运行时读写文件
+
+
+mkdir /root/j_node
+chmod 777 /root/j_node
+
+后台将镜像以容器的形式起服务，对端口映射，同时把刚刚建立的目录挂载到容器中
+
+
+docker run -d --name jenkins -p 8081:8080 -p 50000:50000 -v /root/j_node:/var/jenkins_home jenkins/jenkins
+
+这里注意，如果是阿里云的话，安全策略需要暴露8081端口
+
+通过网址访问 http://你的ip:8081
+
+然后通过命令获取安装秘钥
+
+
+docker logs jenkins
+
+有了密码，输入后安装建议的插件，推荐的插件里就包含版本控制软件git。
+
+
+
+
+完毕后，根据提示设置登陆账户
+
+
+然后新建一个项目，在源代码控制那一栏，输入你的项目的线上git仓库地址，注意默认应该是master分支，因为生产环境部署的代码必须是主分支
+
+
+
+
+保存后，点击Build Now进行部署，jenkins会自动去git版本库中抽取最新的master分支进行部署，同时每部署一次的历史记录都会被保存下来
+
+
+
+此时，进入/root/j_node 目录下 发现项目已经部署在了workspace目录下
+
+
+
+
+整个过程非常简单，每次上线之前，项目经理只需要检查各个组员的代码，然后统一合并到主分支master，最后进入jenkins点击部署按钮即可，节约了不少时间。
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>在阿里云服务器上使用Nginx部署https协议的网站</title>
+			<link>/posts/a21/</link>
+			<pubDate>Fri, 19 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a21/</guid>
+			<description>在阿里云服务器上使用Nginx部署https协议的网站  之前写过一篇文章是在阿里云服务器上用Apache切换https协议：将博客迁移阿里云并且切换成https解析的过程 这一次，换成使用Nginx来部署，相比之下，比Apache的配置要简单一些 如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。 申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录 然后打开nginx配置文件 vim /etc/nginx/conf.d/default.conf 同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口 server { listen 80; server_name m9u.cn; #这一步是http重定向到https，也可以不写 rewrite ^(.*)$ https://${server_name}$1 permanent; access_log /root/md_vue_access.log; error_log /root/md_vue_error.log; client_max_body_size 75M; location / { root /root/fast_vue; index index.html; try_files $uri $uri/ /index.html; } error_log /root/fast_vue/error.log error; } server { listen 443; server_name m9u.cn; ssl on; ssl_certificate /root/2238250_m9u.cn.pem; ssl_certificate_key /root/2238250_m9u.cn.key; ssl_session_timeout 5m; ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4; ssl_protocols TLSv1 TLSv1.1 TLSv1.2; ssl_prefer_server_ciphers on; location / { root /root/fast_vue; index index.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="在阿里云服务器上使用nginx部署https协议的网站">在阿里云服务器上使用Nginx部署https协议的网站</h1>
+
+<pre><code> 之前写过一篇文章是在阿里云服务器上用Apache切换https协议：将博客迁移阿里云并且切换成https解析的过程
+
+    这一次，换成使用Nginx来部署，相比之下，比Apache的配置要简单一些
+
+    如何申请SSL证书就按下不表了，非常简单，目前阿里云和腾讯云都免费提供一年的证书服务，区别就是腾讯云不需要域名在腾讯，而阿里云只有域名在阿里旗下才提供。
+
+    申请域名证书成功后，下载压缩包，一定要选择Nginx的证书类型，解压后得到一个key文件一个pem文件，将这两个文件上传到服务器的root目录
+
+    
+
+
+    然后打开nginx配置文件
+
+    
+
+vim /etc/nginx/conf.d/default.conf
+
+同时添加http和https的协议配置，需要注意的是，http需要阿里云安全协议暴露80端口,https需要阿里云安全协议暴露443端口
+
+
+server {
+    listen       80;
+    server_name  m9u.cn;
+    #这一步是http重定向到https，也可以不写
+    rewrite ^(.*)$ https://${server_name}$1 permanent;
+    access_log      /root/md_vue_access.log;
+    error_log       /root/md_vue_error.log;
+
+
+    client_max_body_size 75M;
+
+
+    location / {
+
+        root /root/fast_vue;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    error_log    /root/fast_vue/error.log    error;
+
+}
+
+server {
+
+        listen 443;
+        server_name m9u.cn;
+        ssl on;
+        ssl_certificate      /root/2238250_m9u.cn.pem;
+        ssl_certificate_key  /root/2238250_m9u.cn.key;
+        ssl_session_timeout 5m;
+        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+
+        location / {
+
+        root /root/fast_vue;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+
+        }
+
+    }
+
+重启nginx
+
+
+systemctl restart nginx.service
+使用https//访问
+
+
+
+
+没有问题，如果配置了重定向的话，那么访问http的内容将会自动301重定向到https，增加了安全等级
+
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>python3.7.3操作FastDfs来进行文件操作</title>
+			<link>/posts/a20/</link>
+			<pubDate>Wed, 17 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a20/</guid>
+			<description> python3.7.3操作FastDfs来进行文件操作  在之前的一篇文章中:利用Docker来搭建分布式文件系统FastDfs，我们已经搭建好了FastDfs分布式文件系统，并且已经可以通过命令进行上传操作，那么如何使用python来上传文件呢？ 很简单，还是利用docker的特性，我们知道docker 的 -v 参数，可以自动挂载宿主机的文件件到容器中去，这样宿主和容器就可以进行无障碍的文件共享，我们通过-v参数，把宿主机的root目录自动挂载到docker容器中的/var/root目录中去。 docker run -d --network=host --name tracker -v /root:/var/root delron/fastdfs tracker docker run -d --network=host --name storage -e TRACKER_SERVER=172.18.0.1:22122 -v /root:/var/root -e GROUP_NAME=group1 delron/fastdfs storage 我们又起了两个服务，一个tracker(调度)另外一个是storage(仓库),只不过都共享了宿主的文件夹/root，挂载到了/var/root下 然后分别进入宿主的命令行以及进入容器storage的命令行，发现文件夹已经共享 此时，我们可以利用docker的exec命令不进入容器，直接在宿主机的环境下调用容器内的命令，因为文件夹已经共享，所以我们输入的文件目录虽然是容器中的/var/root目录，但是实际上该上传的文件就在宿主的/root目录中，这里，我们不上传图片，而是上传一个视频 docker exec -i storage /usr/bin/fdfs_upload_file /etc/fdfs/client.conf /var/root/test.mp4 上传成功后，fastdfs将会返回视频的网络地址 浏览器访问一下，没有问题 至此，在宿主机中上传文件已经搞定，而python同样也可以在命令行中执行命令，我们可以从命令中得到URL的做法来实现django与fastdfs的交流，这里利用的是python中的os.popen方法，可以非常简单的在命令行中获取返回的fastdfs网络地址，从而避开了必须要安装fastdfs的python客户端，因为该客户端对python3并不十分友好。代码如下： import os import re std = os.popen(&amp;quot;docker exec -i storage /usr/bin/fdfs_upload_file /etc/fdfs/client.conf /var/root/test.mp4&amp;quot;).read() print(&#39;*********** fastdfs excute start ***********&#39;) print(std.strip()) print(&#39;*********** fastdfs excute end ***********&#39;) 这样，在django中上传文件时，就可以通过命令的方式上传到fastdfs中，获取返回地址后入库就可以了，本次操作将docker的特性运用到了极致，由此可见docker的泛用性之广，实实在在的提高了开发效率。  </description>
+			<content type="html"><![CDATA[
+
+<h1 id="python3-7-3操作fastdfs来进行文件操作">python3.7.3操作FastDfs来进行文件操作</h1>
+
+<pre><code> 在之前的一篇文章中:利用Docker来搭建分布式文件系统FastDfs，我们已经搭建好了FastDfs分布式文件系统，并且已经可以通过命令进行上传操作，那么如何使用python来上传文件呢？
+
+
+    很简单，还是利用docker的特性，我们知道docker 的 -v 参数，可以自动挂载宿主机的文件件到容器中去，这样宿主和容器就可以进行无障碍的文件共享，我们通过-v参数，把宿主机的root目录自动挂载到docker容器中的/var/root目录中去。
+
+
+docker run -d --network=host --name tracker -v /root:/var/root delron/fastdfs tracker
+
+docker run -d --network=host --name storage -e TRACKER_SERVER=172.18.0.1:22122 -v /root:/var/root -e GROUP_NAME=group1 delron/fastdfs storage
+
+我们又起了两个服务，一个tracker(调度)另外一个是storage(仓库),只不过都共享了宿主的文件夹/root，挂载到了/var/root下
+
+然后分别进入宿主的命令行以及进入容器storage的命令行，发现文件夹已经共享
+
+
+
+
+此时，我们可以利用docker的exec命令不进入容器，直接在宿主机的环境下调用容器内的命令，因为文件夹已经共享，所以我们输入的文件目录虽然是容器中的/var/root目录，但是实际上该上传的文件就在宿主的/root目录中，这里，我们不上传图片，而是上传一个视频
+
+
+docker exec -i storage /usr/bin/fdfs_upload_file /etc/fdfs/client.conf /var/root/test.mp4
+
+上传成功后，fastdfs将会返回视频的网络地址
+
+
+
+浏览器访问一下，没有问题
+
+
+
+
+至此，在宿主机中上传文件已经搞定，而python同样也可以在命令行中执行命令，我们可以从命令中得到URL的做法来实现django与fastdfs的交流，这里利用的是python中的os.popen方法，可以非常简单的在命令行中获取返回的fastdfs网络地址，从而避开了必须要安装fastdfs的python客户端，因为该客户端对python3并不十分友好。代码如下：
+
+
+import os
+import re
+
+std = os.popen(&quot;docker exec -i storage /usr/bin/fdfs_upload_file /etc/fdfs/client.conf /var/root/test.mp4&quot;).read()
+print('*********** fastdfs excute start ***********')
+print(std.strip())
+print('*********** fastdfs excute end ***********')
+
+这样，在django中上传文件时，就可以通过命令的方式上传到fastdfs中，获取返回地址后入库就可以了，本次操作将docker的特性运用到了极致，由此可见docker的泛用性之广，实实在在的提高了开发效率。
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>利用Docker来搭建分布式文件系统FastDfs</title>
+			<link>/posts/a19/</link>
+			<pubDate>Mon, 15 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a19/</guid>
+			<description> 利用Docker来搭建分布式文件系统FastDfs  对于文件存储来说，一般情况下简单的处理就是在Django配置文件中配置存储目录，按照规则对文件进行上传或者下载。 实际上，当文件较少的时候，Django是可以应付的过来的。但当文件以海量形式出现的时候，Django就并不是那么好用了，于是Fast DFS应运而出。 FastDFS是一个开源的分布式文件系统，它对文件进行管理，功能包括：文件存储、文件同步、文件访问（文件上传、文件下载）等，解决了大容量存储和负载均衡的问题。特别适合以文件为载体的在线服务，如相册网站、视频网站等等。可以说它就是为互联网而生，为大数据而生的。 FastDFS服务端有两个角色：跟踪器（tracker）和存储节点（storage）。跟踪器主要做调度工作，在访问上起负载均衡的作用。 存储节点存储文件，完成文件管理的所有功能：存储、同步和提供存取接口，FastDFS同时对文件的meta data进行管理。跟踪器和存储节点都可以由多台服务器构成。跟踪器和存储节点中的服务器均可以随时增加或下线而不会影响线上服务。其中跟踪器中的所有服务器都是对等的，可以根据服务器的压力情况随时增加或减少。 说人话，为啥要用FastDfs: 1 解决海量存储，同时存储容量扩展方便。 2 解决文件内容重复,如果用户上传的文件重复(文件指纹一样)，那么系统只有存储一份数据，值得一提的是，这项技术目前被广泛应用在网盘中。 3 结合Nginx提高网站读取图片的效率。 如果我们从头搭建fastdfs服务器那么就太low了，网上有大把的docker镜像供你选择，所以又到了利用docker优越性的时候了，首先下载fastdfs镜像 docker pull delron/fastdfs 区区四百多兆就承载了nginx和fastdfs服务 然后使用docker镜像构建tracker容器（跟踪服务器，起到调度的作用），这里tracker服务将会自动映射到宿主机上 docker run -d --network=host --name tracker -v /root:/var/root delron/fastdfs tracker 使用docker镜像构建storage容器（存储服务器，提供容量和备份服务），这里storage容器需要依赖tracker服务，传入你的tracker服务的ip地址，端口默认是22122，ip地址也就是你宿主机的ip docker run -d --network=host --name storage -e TRACKER_SERVER=192.168.99.100:22122 -v /root:/var/root -e GROUP_NAME=group1 delron/fastdfs storage 此时，命令行输入 docker ps 就可以看到两套服务都已经启动 这时，进入正在后台运行的storage容器 docker exec -it storage /bin/bash 随便下载一张图片,这个不用担心，因为在容器中如果不提交仓库的话，该图片是不会保存的 wget https://v3u.cn/v3u/Public/images/logo.png 将该图片通过命令上传到分布式系统中 /usr/bin/fdfs_upload_file /etc/fdfs/client.conf logo.png 这时该图片已上传至文件系统，并在执行该语句后返回图片存储的网络地址 最后通过浏览器访问以下存储在Fastdfs的图片，这张图片是通过nginx代理的静态资源，默认nginx监听8888端口，所以需要加上端口号，如果是在阿里云上部署，则需要暴露外部端口8888 可以看到，没有任何问题，同理，如果是视频资源，同样可以上传到fastdfs中，搞定收工。  </description>
+			<content type="html"><![CDATA[
+
+<h1 id="利用docker来搭建分布式文件系统fastdfs">利用Docker来搭建分布式文件系统FastDfs</h1>
+
+<pre><code> 对于文件存储来说，一般情况下简单的处理就是在Django配置文件中配置存储目录，按照规则对文件进行上传或者下载。
+
+    实际上，当文件较少的时候，Django是可以应付的过来的。但当文件以海量形式出现的时候，Django就并不是那么好用了，于是Fast DFS应运而出。
+
+        FastDFS是一个开源的分布式文件系统，它对文件进行管理，功能包括：文件存储、文件同步、文件访问（文件上传、文件下载）等，解决了大容量存储和负载均衡的问题。特别适合以文件为载体的在线服务，如相册网站、视频网站等等。可以说它就是为互联网而生，为大数据而生的。
+
+    FastDFS服务端有两个角色：跟踪器（tracker）和存储节点（storage）。跟踪器主要做调度工作，在访问上起负载均衡的作用。 存储节点存储文件，完成文件管理的所有功能：存储、同步和提供存取接口，FastDFS同时对文件的meta data进行管理。跟踪器和存储节点都可以由多台服务器构成。跟踪器和存储节点中的服务器均可以随时增加或下线而不会影响线上服务。其中跟踪器中的所有服务器都是对等的，可以根据服务器的压力情况随时增加或减少。
+
+    
+
+    说人话，为啥要用FastDfs:
+
+    1 解决海量存储，同时存储容量扩展方便。
+    2 解决文件内容重复,如果用户上传的文件重复(文件指纹一样)，那么系统只有存储一份数据，值得一提的是，这项技术目前被广泛应用在网盘中。
+    3 结合Nginx提高网站读取图片的效率。
+
+    
+
+    如果我们从头搭建fastdfs服务器那么就太low了，网上有大把的docker镜像供你选择，所以又到了利用docker优越性的时候了，首先下载fastdfs镜像
+
+    
+
+docker pull delron/fastdfs
+
+
+
+
+区区四百多兆就承载了nginx和fastdfs服务
+
+然后使用docker镜像构建tracker容器（跟踪服务器，起到调度的作用），这里tracker服务将会自动映射到宿主机上
+
+
+docker run -d --network=host --name tracker -v /root:/var/root delron/fastdfs tracker
+
+使用docker镜像构建storage容器（存储服务器，提供容量和备份服务），这里storage容器需要依赖tracker服务，传入你的tracker服务的ip地址，端口默认是22122，ip地址也就是你宿主机的ip
+
+
+docker run -d --network=host --name storage -e TRACKER_SERVER=192.168.99.100:22122 -v /root:/var/root -e GROUP_NAME=group1 delron/fastdfs storage
+
+此时，命令行输入 docker ps 就可以看到两套服务都已经启动
+
+
+
+
+这时，进入正在后台运行的storage容器
+
+
+docker exec -it storage /bin/bash
+随便下载一张图片,这个不用担心，因为在容器中如果不提交仓库的话，该图片是不会保存的
+
+
+wget https://v3u.cn/v3u/Public/images/logo.png 将该图片通过命令上传到分布式系统中
+
+
+/usr/bin/fdfs_upload_file /etc/fdfs/client.conf logo.png
+
+这时该图片已上传至文件系统，并在执行该语句后返回图片存储的网络地址
+
+
+
+最后通过浏览器访问以下存储在Fastdfs的图片，这张图片是通过nginx代理的静态资源，默认nginx监听8888端口，所以需要加上端口号，如果是在阿里云上部署，则需要暴露外部端口8888
+
+
+
+
+可以看到，没有任何问题，同理，如果是视频资源，同样可以上传到fastdfs中，搞定收工。
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>在阿里云Centos上配置nginx&#43;uwsgi&#43;负载均衡配置</title>
+			<link>/posts/a18/</link>
+			<pubDate>Sat, 13 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a18/</guid>
+			<description>在阿里云Centos上配置nginx+uwsgi+负载均衡配置  负载均衡在服务端开发中算是一个比较重要的特性。因为Nginx除了作为常规的Web服务器外，还会被大规模的用于反向代理后端，Nginx的异步框架可以处理很大的并发请求，把这些并发请求hold住之后就可以分发给后台服务端(backend servers, 后面简称backend)来做复杂的计算、处理和响应，并且在业务量增加的时候可以方便地扩容后台服务器。 说白了就是，随着业务和用户规模的增长，仅仅一台服务器无法肩负起高并发的响应，所以需要两台以上的服务器共同分担压力，而分担压力的媒介就是万能的Nginx。 首先，利用wsgi在不同的端口上起两个Django服务，比如8002和8003 然后修改nginx网站配置 vim /etc/nginx/conf.d/default.conf，将原uwsgi_pass注释，改成变量绑定 server { listen 80; server_name localhost; access_log /root/myweb_access.log; error_log /root/myweb_error.log; client_max_body_size 75M; location / { include uwsgi_params; #uwsgi_pass 127.0.0.1:8000; uwsgi_pass mytest; uwsgi_param UWSGI_SCRIPT mypro.wsgi; uwsgi_param UWSGI_CHDIR /root/mypro; } location /static { alias /root/mypro/static; } } 然后修改主配置文件 vim /etc/nginx/nginx.conf，在http配置内添加负载均衡配置 http { include /etc/nginx/mime.types; default_type application/octet-stream; log_format main &#39;$remote_addr - $remote_user [$time_local] &amp;quot;$request&amp;quot; &#39; &#39;$status $body_bytes_sent &amp;quot;$http_referer&amp;quot; &#39; &#39;&amp;quot;$http_user_agent&amp;quot; &amp;quot;$http_x_forwarded_for&amp;quot;&#39;; access_log /var/log/nginx/access.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="在阿里云centos上配置nginx-uwsgi-负载均衡配置">在阿里云Centos上配置nginx+uwsgi+负载均衡配置</h1>
+
+<pre><code> 负载均衡在服务端开发中算是一个比较重要的特性。因为Nginx除了作为常规的Web服务器外，还会被大规模的用于反向代理后端，Nginx的异步框架可以处理很大的并发请求，把这些并发请求hold住之后就可以分发给后台服务端(backend servers, 后面简称backend)来做复杂的计算、处理和响应，并且在业务量增加的时候可以方便地扩容后台服务器。
+
+    说白了就是，随着业务和用户规模的增长，仅仅一台服务器无法肩负起高并发的响应，所以需要两台以上的服务器共同分担压力，而分担压力的媒介就是万能的Nginx。
+
+
+    
+
+
+    首先，利用wsgi在不同的端口上起两个Django服务，比如8002和8003
+
+    然后修改nginx网站配置 vim /etc/nginx/conf.d/default.conf，将原uwsgi_pass注释，改成变量绑定
+
+    
+
+server {
+    listen       80;
+    server_name  localhost;
+
+    access_log      /root/myweb_access.log;
+    error_log       /root/myweb_error.log;
+
+
+    client_max_body_size 75M;
+
+
+    location / {
+        include uwsgi_params;
+        #uwsgi_pass 127.0.0.1:8000;
+        uwsgi_pass mytest;
+        uwsgi_param UWSGI_SCRIPT mypro.wsgi;
+        uwsgi_param UWSGI_CHDIR  /root/mypro;
+
+    }
+
+    location /static {
+        alias /root/mypro/static;
+    }
+}
+然后修改主配置文件 vim /etc/nginx/nginx.conf，在http配置内添加负载均衡配置
+
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+
+
+    upstream mytest {
+    server 127.0.0.1:8002;  #负载均衡服务器群
+    server 127.0.0.1:8003;
+    }
+}
+
+然后重启服务即可：
+
+systemctl restart nginx.service
+ 
+值得注意的是常用的负载均衡策略有以下几种：
+1、轮询（默认）
+每个请求按时间顺序逐一分配到不同的后端服务器，如果后端服务器down掉，能自动剔除。
+
+upstream backserver {
+    server 192.168.0.14;
+    server 192.168.0.15;
+}
+
+
+2、权重 weight
+指定轮询几率，weight和访问比率成正比，用于后端服务器性能不均的情况。
+
+upstream backserver {
+    server 192.168.0.14 weight=3;
+    server 192.168.0.15 weight=7;
+}
+
+
+3、ip_hash（ IP绑定）
+上述方式存在一个问题就是说，在负载均衡系统中，假如用户在某台服务器上登录了，那么该用户第二次请求的时候，因为我们是负载均衡系统，每次请求都会重新定位到服务器集群中的某一个，那么已经登录某一个服务器的用户再重新定位到另一个服务器，其登录信息将会丢失，这样显然是不妥的。
+
+我们可以采用ip_hash指令解决这个问题，如果客户已经访问了某个服务器，当用户再次访问时，会将该请求通过哈希算法，自动定位到该服务器。
+
+每个请求按访问ip的hash结果分配，这样每个访客固定访问一个后端服务器，可以解决session的问题。
+
+upstream backserver {
+    ip_hash;
+    server 192.168.0.14:88;
+    server 192.168.0.15:80;
+}
+
+
+4、fair（第三方插件）
+按后端服务器的响应时间来分配请求，响应时间短的优先分配。
+
+upstream backserver {
+    server server1;
+    server server2;
+    fair;
+}
+
+
+5、url_hash（第三方插件）
+按访问url的hash结果来分配请求，使每个url定向到同一个后端服务器，后端服务器为缓存时比较有效。
+
+upstream backserver {
+    server squid1:3128;
+    server squid2:3128;
+    hash $request_uri;
+    hash_method crc32;
+}
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>golang基础</title>
+			<link>/posts/a2/</link>
+			<pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a2/</guid>
+			<description>golang基础 1、init函数和main函数 1. golang里面有两个保留的函数：init函数（用于所有package）和main函数（只能用于package main）。(这两个函数在定义时不能有任何的参数和返回值) 2. 每个package中的init函数都是可选的，但package main就必须包含一个main函数。 3. go程序会自动调用init()和main()，所以你不需要在任何地方调用这两个函数。 4. 程序的初始化和执行都起始于main包。如果main包还导入了其它的包，那么就会在编译时将它们依次导入。 5. 等所有被导入的包都加载完毕了，就会开始对main包中的包级常量和变量进行初始化，然后执行main包中的init函数（如果存在的话），最后执行main函数。 2、调用过程 3、在main package中调用add package中变量和方法 1. 直接使用默认包名调用add中方法 package main import ( &amp;quot;LearGoProject/day1/example3/add&amp;quot; // 下面可以直接使用package名字 add 调用变量和方法 &amp;quot;fmt&amp;quot; ) func main() { add.Test() // 调用add.go中的Test()方法就会修改Name、和Age的值 fmt.Println(add.Name) // 打印add中的变量Name ：hello go fmt.Println(add.Age) // 打印add中的变量Age ：100 } package add var Name string = &amp;quot;hello world&amp;quot; // 变量名为大写才不是私有的，可以在main.go中访问 var Age int = 10 func Test() { Name = &amp;quot;hello go&amp;quot; Age = 100 } 2.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="golang基础">golang基础</h1>
+
+<pre><code>1、init函数和main函数
+
+　　　　　　1. golang里面有两个保留的函数：init函数（用于所有package）和main函数（只能用于package main）。(这两个函数在定义时不能有任何的参数和返回值)
+
+　　　　　　2. 每个package中的init函数都是可选的，但package main就必须包含一个main函数。
+
+　　　　　　3. go程序会自动调用init()和main()，所以你不需要在任何地方调用这两个函数。
+
+　　　　　　4. 程序的初始化和执行都起始于main包。如果main包还导入了其它的包，那么就会在编译时将它们依次导入。
+
+　　　　　　5. 等所有被导入的包都加载完毕了，就会开始对main包中的包级常量和变量进行初始化，然后执行main包中的init函数（如果存在的话），最后执行main函数。
+
+　　2、调用过程
+
+　　　　　　
+
+　　3、在main package中调用add package中变量和方法
+
+　　　　1. 直接使用默认包名调用add中方法
+
+
+
+package main
+
+import (
+    &quot;LearGoProject/day1/example3/add&quot;  // 下面可以直接使用package名字 add 调用变量和方法
+    &quot;fmt&quot;
+)
+
+func main()  {
+    add.Test()                // 调用add.go中的Test()方法就会修改Name、和Age的值
+    fmt.Println(add.Name)     // 打印add中的变量Name ：hello go
+    fmt.Println(add.Age)      // 打印add中的变量Age  ：100
+}
+
+package add
+
+var Name string = &quot;hello world&quot;   // 变量名为大写才不是私有的，可以在main.go中访问
+var Age int = 10
+
+func Test()  {
+    Name = &quot;hello go&quot;
+    Age = 100
+}
+
+　　　　2. 通过包别名调用 addd package中变量和方法
+
+
+
+package main
+
+import (
+    aa &quot;LearGoProject/day1/example3/add&quot;  // 将add这个文件取一个别名 aa 下面调用add.go中方法就是用aa
+    &quot;fmt&quot;
+)
+
+func main()  {
+    aa.Test()               // 通过package别名aa来调用add package中方法
+    fmt.Println(aa.Name)     // 打印add中的变量Name ：hello go
+    fmt.Println(aa.Age)      // 打印add中的变量Age  ：100
+}
+
+package add
+
+var Name string = &quot;hello world&quot;   // 变量名为大写才不是私有的，可以在main.go中访问
+var Age int = 10
+
+func Test()  {
+    Name = &quot;hello go&quot;
+    Age = 100
+}
+
+　　　　3. 通过init方法自动调用
+
+
+
+package main
+
+import (
+    aa &quot;LearGoProject/day1/example3/add&quot;  // 将add这个文件取一个别名 aa 下面调用add.go中方法就是用aa
+    &quot;fmt&quot;
+)
+
+func main()  {
+    //aa.Test()              // 这里add中修改变量的方法写在init中所以会自动调用
+    fmt.Println(aa.Name)     // 打印add中的变量Name ：hello go
+    fmt.Println(aa.Age)      // 打印add中的变量Age  ：100
+}
+
+package add
+
+var Name string = &quot;hello world&quot;   // 变量名为大写才不是私有的，可以在main.go中访问
+var Age int = 10
+
+// 每个源文件可以包含一个init函数，这个init函数自动被go运行的框架调用
+func init()  {
+    Name = &quot;hello go&quot;
+    Age = 100
+}
+
+ 1.2 程序结构
+ 　　1、声明　　
+
+　　　　　　1. Go语言主要有四种类型的声明：var(变量)、const(常量)、type(类型)和func(函数)。
+
+　　　　　　2. 在包一级声明语句声明的名字可在整个包对应的每个源文件中访问，而不是仅仅在其声明语句所在的源文件中访问
+
+　　　　　　3. 在函数内的声明只能在函数内访问。 
+
+　　2、变量
+
+　　　　1）var 变量名字 类型 = 表达式 
+
+
+
+package main
+import &quot;fmt&quot;
+
+var a int =  9
+var str string =&quot;I Am String&quot;
+
+func main() {
+    fmt.Println(a)
+    fmt.Println(str)
+}
+
+　　　　2）简短变量声明
+
+　　　　　　　　1. 请记住“:=”是一个变量声明语句，而“=‘是一个变量赋值操作。
+
+　　　　　　　　2. := 是声明并赋值，并且系统自动推断类型，不需要var关键字
+
+
+
+package main
+import &quot;fmt&quot;
+
+func main() {
+    i := 100 // an int
+    fmt.Println(i)
+}
+
+　　3、指针
+
+　　　　1）指针介绍
+
+　　　　　　　　1. 一个变量对应一个保存了变量对应类型值的内存空间，普通变量在声明语句创建时被绑定到一个变量名，比如叫x的变量
+
+　　　　　　　　2. 但是还有很多变量始终以表达式方式引入，例如x[i]或x.f变量。
+
+　　　　　　　　3. 一个指针的值是另一个变量的地址，一个指针对应变量在内存中的存储位置
+
+　　　　　　　　4. 并不是每一个值都会有一个内存地址，但是对于每一个变量必然有对应的内存地址。
+
+　　　　　　　　5. 通过指针，我们可以直接读或更新对应变量的值，而不需要知道该变量的名字（如果变量有名字的话）。
+
+　　　　2）指针举例
+
+
+
+package main
+import &quot;fmt&quot;
+
+func main() {
+    x := 1             // 什么一个x变量
+    p := &amp;x            // &amp;x表达式（取x变量的内存地址）将产生一个指向该整数变量的指针p
+    fmt.Println(*p)    // &quot;1&quot;     *p 表达式对应p指针指向的变量的值
+    *p = 2             // *p = 2 等价于 x = 2  表示更新指针所指向的变量的值。
+    fmt.Println(x)     // &quot;2&quot;     此时再打印x已经是*p更新过的结果2
+}
+
+/*
+如果用“var x int”声明语句声明一个x变量，
+那么&amp;x表达式（取x变量的内存地址）将产生一个指向该整数变量的指针
+指针对应的数据类型是 *int ，指针被称之为“指向int类型的指针”
+如果指针名字为p，那么可以说“p指针指向变量x”，或者说“p指针保存了x变量的内存地址”。
+同时 *p 表达式对应p指针指向的变量的值。
+一般 *p 表达式读取指针指向的变量的值，这里为int类型的值，同时因为 *p 对应一个变量
+所以该表达式也可以出现在赋值语句的左边，表示更新指针所指向的变量的值。
+*/
+
+　　4、new函数
+
+　　　　　　1. 表达式new(T)将创建一个T类型的匿名变量，初始化为T类型的零值，然后返回变量地址，返回的指针类型为 *T
+
+　　　　　　2. 用new创建变量和普通变量声明语句方式创建变量没有什么区别，除了不需要声明一个临时变量的名字外，我们还可以在表达式中使用new(T)
+
+
+
+func newInt() *int {
+return new(int)
+}
+
+func newInt() *int {
+var dummy int
+return &amp;dummy
+}
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>在阿里云Centos7.6上部署Supervisor来监控和操作各类服务</title>
+			<link>/posts/a17/</link>
+			<pubDate>Thu, 11 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a17/</guid>
+			<description>在阿里云Centos7.6上部署Supervisor来监控和操作各类服务  Supervisor 是用Python开发的一个client/server服务，是Linux/Unix系统下的一个进程管理工具，不支持Windows系统。它可以很方便的监听、启动、停止、重启一个或多个进程。用Supervisor管理的进程，当一个进程意外被杀死，supervisort监听到进程死后，会自动将它重新拉起，很方便的做到进程自动恢复的功能，不再需要自己写shell脚本来控制。 说白了，它真正有用的功能是俩个将非daemon(守护进程)程序变成deamon方式运行对程序进行监控，当程序退出时，可以自动拉起程序。 但是它无法控制本身就是daemon的服务。 安装Supervisor yum install epel-release yum install -y supervisor 生成配置文件 supervisord -c /etc/supervisord.conf 然后修改配置文件 vim /etc/supervisord.conf 将web服务打开，需要注意ip地址要写*，否则外网访问不了，而username和password就是登录服务页面的用户名和密码，可以改的复杂一点，另外阿里云也需要向外网暴露一下9001端口 [inet_http_server] ; inet (TCP) server disabled by default port=*:9001 ; (ip_address:port specifier, *:port for all iface) username=user ; (default is no username (open server)) password=123 ; (default is no password (open server)) 然后添加uwsgi服务的配置 [program:mypro] command =uwsgi /usr/local/bin/uwsgi --ini /root/js_back/js_back_uwsgi.ini ; 启动命令,可以看出与手动在命令行启动的命令是一样的 autostart = false ; 在 supervisord 启动的时候也自动启动 stopsignal=QUIT user=root startsecs = 5 ; 启动 5 秒后没有异常退出，就当作已经正常启动了 startretries = 3 ; 启动失败自动重试次数，默认是 3 autorestart = true ; 程序异常退出后自动重启 redirect_stderr = true ; 把 stderr 重定向到 stdout，默认 false stdout_logfile_maxbytes = 20MB ; stdout 日志文件大小，默认 50MB stdout_logfile = /root/js_back_uwsgi.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="在阿里云centos7-6上部署supervisor来监控和操作各类服务">在阿里云Centos7.6上部署Supervisor来监控和操作各类服务</h1>
+
+<pre><code> Supervisor    是用Python开发的一个client/server服务，是Linux/Unix系统下的一个进程管理工具，不支持Windows系统。它可以很方便的监听、启动、停止、重启一个或多个进程。用Supervisor管理的进程，当一个进程意外被杀死，supervisort监听到进程死后，会自动将它重新拉起，很方便的做到进程自动恢复的功能，不再需要自己写shell脚本来控制。
+
+    说白了，它真正有用的功能是俩个将非daemon(守护进程)程序变成deamon方式运行对程序进行监控，当程序退出时，可以自动拉起程序。
+
+    但是它无法控制本身就是daemon的服务。
+
+    
+
+    安装Supervisor
+
+    
+
+yum install epel-release
+yum install -y supervisor     
+
+生成配置文件
+
+
+supervisord -c /etc/supervisord.conf 
+然后修改配置文件 vim /etc/supervisord.conf
+
+将web服务打开，需要注意ip地址要写*，否则外网访问不了，而username和password就是登录服务页面的用户名和密码，可以改的复杂一点，另外阿里云也需要向外网暴露一下9001端口
+
+
+[inet_http_server]         ; inet (TCP) server disabled by default
+port=*:9001        ; (ip_address:port specifier, *:port for all iface)
+username=user              ; (default is no username (open server))
+password=123               ; (default is no password (open server))
+然后添加uwsgi服务的配置
+
+
+[program:mypro]
+command =uwsgi /usr/local/bin/uwsgi --ini /root/js_back/js_back_uwsgi.ini ; 启动命令,可以看出与手动在命令行启动的命令是一样的
+autostart = false     ; 在 supervisord 启动的时候也自动启动
+stopsignal=QUIT    
+user=root
+startsecs = 5     ; 启动 5 秒后没有异常退出，就当作已经正常启动了
+startretries = 3   ; 启动失败自动重试次数，默认是 3
+autorestart = true   ; 程序异常退出后自动重启
+redirect_stderr = true  ; 把 stderr 重定向到 stdout，默认 false
+stdout_logfile_maxbytes = 20MB  ; stdout 日志文件大小，默认 50MB
+stdout_logfile = /root/js_back_uwsgi.log
+stderr_logfile = /root/js_back_err.log
+
+最后我们知道，Supervisord只能控制非守护进程，而uwsgi本身就具备守护进程的配置，所以需要修改项目的uwsgi配置，将守护进程配置注掉 vim js_back_uwsgi.ini
+
+
+[uwsgi]
+
+chdir           = /root/js_back
+module          = js_back.wsgi
+master          = true
+processes       = 3
+socket            = 0.0.0.0:8001
+vacuum          = true
+pythonpath      = /usr/bin/python3
+pidfile = /root/js_back/js_back.pid
+#注释掉daemonize模式，因为Supervisor无法控制守护进程服务
+#daemonize  = /root/js_back/uwsgi.log
+
+最后启动服务
+
+
+supervisord -c /etc/supervisord.conf
+
+
+如果想杀死服务可以输入命令,因为supervisor是基于python2的，所以不用担心python3的进程
+
+
+killall -s INT /usr/bin/python
+
+最后访问服务管理界面 http://ip:9001，就可以管理你服务器上的服务啦
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>go lang 开发环境</title>
+			<link>/posts/a3/</link>
+			<pubDate>Wed, 10 Apr 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a3/</guid>
+			<description>go lang开发环境 1、go下载安装
+　官方：https://golang.org/dl
+　国内：
+　https://golang.google.cn/dl/
+　https://www.golangtc.com/download
+　调整go环境变量
+　我的电脑 &amp;ndash;&amp;gt; 高级 &amp;ndash;&amp;gt; 环境变量
+　1. 首先要把go安装目录下的bin目录放到Path环境变量中，并添加我们代码的存放位置（系统变量path路径）
+　C:\Go\bin # go安装路径
+　C:\onlineGo # 我们代码存放路径
+　2. 指定go编译器安装的目录（GOROOT 默认安装时就是这个路径 用户变量）
+　C:\go
+　3. 我自己写的代码要放到这个变量中配置的目录中，go编译器才会找到并编译（GOPATH 用户变量）
+　C:\onlineGo # 指定GOPATH路径
+　C:\onlineGo\src # src 我们写的代码路径
+　C:\onlineGo\pkg # pkg 生成的临时文件、库文件
+　C:\onlineGo\bin　# go build 生成的bin文件都在这里
+　4. 确认我们修改的路径（go env） 　2、goland开发环境（ide）
+　1. goland开发环境： https://www.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="go-lang开发环境">go lang开发环境</h1>
+
+<p>1、go下载安装</p>
+
+<p>　　　　　　官方：<a href="https://golang.org/dl">https://golang.org/dl</a></p>
+
+<p>　　　　　　国内：</p>
+
+<p>　　　　　　　　<a href="https://golang.google.cn/dl/">https://golang.google.cn/dl/</a></p>
+
+<p>　　　　　　　　<a href="https://www.golangtc.com/download">https://www.golangtc.com/download</a></p>
+
+<p>　　　　调整go环境变量</p>
+
+<p>　　　　　　我的电脑 &ndash;&gt; 高级  &ndash;&gt; 环境变量</p>
+
+<p>　　　　　　1. 首先要把go安装目录下的bin目录放到Path环境变量中，并添加我们代码的存放位置（系统变量path路径）</p>
+
+<p>　　　　　　　　　　C:\Go\bin             # go安装路径</p>
+
+<p>　　　　　　　　　　C:\onlineGo         # 我们代码存放路径</p>
+
+<p>　　　　　　2. 指定go编译器安装的目录（GOROOT   默认安装时就是这个路径 用户变量）</p>
+
+<p>　　　　　　　　　　C:\go</p>
+
+<p>　　　　　　3. 我自己写的代码要放到这个变量中配置的目录中，go编译器才会找到并编译（GOPATH 用户变量）</p>
+
+<p>　　　　　　　　　　C:\onlineGo                 # 指定GOPATH路径</p>
+
+<p>　　　　　　　　　　C:\onlineGo\src           # src 我们写的代码路径</p>
+
+<p>　　　　　　　　　　C:\onlineGo\pkg          # pkg 生成的临时文件、库文件</p>
+
+<p>　　　　　　　　　　C:\onlineGo\bin　       # go build 生成的bin文件都在这里</p>
+
+<p>　　　　　　4. 确认我们修改的路径（go env）
+　　　　　　　　　　</p>
+
+<p>　　2、goland开发环境（ide）</p>
+
+<p>　　　　　　1. goland开发环境： <a href="https://www.jetbrains.com/go/download/#section=windows">https://www.jetbrains.com/go/download/#section=windows</a></p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>均值漂移 mean_shift</title>
+			<link>/posts/j12/</link>
+			<pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j12/</guid>
+			<description>均值漂移 mean_shift 通俗理解Meanshift均值漂移算法 导包 从cluster中导入 estimate_bandwidth预估带宽 MeanShift均值漂移 from sklearn.cluster import estimate_bandwidth,MeanShift
+1)概述 Mean-shift（均值迁移）的基本思想：在数据集中选定一个点，然后以这个点为圆心，r为半径，画一个圆(二维下是圆)，求出这个点到所有点的向量的平均值，而圆心与向量均值的和为新的圆心，然后迭代此过程，直到满足一点的条件结束。 后来在此基础上加入了 核函数 和 权重系数 ，使得Mean-shift 算法开始流行起来。目前它在聚类、图像平滑、分割、跟踪等方面有着广泛的应用。 2) 图解过程
+为了方便大家理解，借用下几张图来说明Mean-shift的基本过程。 3）Mean-shift 算法函数 a）核心函数：sklearn.cluster.MeanShift(核函数：RBF核函数)
+由上图可知，圆心(或种子)的确定和半径(或带宽)的选择，是影响算法效率的两个主要因素。所以在sklearn.cluster.MeanShift中重点说明了这两个参数的设定问题。 b）主要参数 bandwidth ：半径(或带宽)，float型。如果没有给出，则使用sklearn.cluster.estimate_bandwidth计算出半径(带宽).（可选） seeds :圆心（或种子），数组类型，即初始化的圆心。（可选） bin_seeding ：布尔值。如果为真，初始内核位置不是所有点的位置，而是点的离散版本的位置，其中点被分类到其粗糙度对应于带宽的网格上。将此选项设置为True将加速算法，因为较少的种子将被初始化。默认值：False.如果种子参数(seeds)不为None则忽略。 c）主要属性 clustercenters : 数组类型。计算出的聚类中心的坐标。 labels_ :数组类型。每个数据点的分类标签。
+通俗理解Meanshift均值漂移算法 Meanshift车手?? 漂移?? 秋名山??? 不,不,他是一组算法, 今天我就带大家来了解一下机器学习中的Meanshift均值漂移. Meanshift算法他的本质是一个迭代的过程 , 我先给大家讲一下他的底层原理</description>
+			<content type="html"><![CDATA[
+
+<h1 id="均值漂移-mean-shift">均值漂移 mean_shift</h1>
+
+<p>通俗理解Meanshift均值漂移算法       
+             导包    从cluster中导入      estimate_bandwidth预估带宽                           MeanShift均值漂移
+from  sklearn.cluster  import   estimate_bandwidth,MeanShift</p>
+
+<p>1)概述
+Mean-shift（均值迁移）的基本思想：在数据集中选定一个点，然后以这个点为圆心，r为半径，画一个圆(二维下是圆)，求出这个点到所有点的向量的平均值，而圆心与向量均值的和为新的圆心，然后迭代此过程，直到满足一点的条件结束。
+后来在此基础上加入了 核函数 和 权重系数 ，使得Mean-shift 算法开始流行起来。目前它在聚类、图像平滑、分割、跟踪等方面有着广泛的应用。
+2) 图解过程</p>
+
+<p>为了方便大家理解，借用下几张图来说明Mean-shift的基本过程。
+3）Mean-shift 算法函数
+a）核心函数：sklearn.cluster.MeanShift(核函数：RBF核函数)</p>
+
+<p>由上图可知，圆心(或种子)的确定和半径(或带宽)的选择，是影响算法效率的两个主要因素。所以在sklearn.cluster.MeanShift中重点说明了这两个参数的设定问题。
+b）主要参数
+bandwidth ：半径(或带宽)，float型。如果没有给出，则使用sklearn.cluster.estimate_bandwidth计算出半径(带宽).（可选）
+seeds :圆心（或种子），数组类型，即初始化的圆心。（可选）
+bin_seeding ：布尔值。如果为真，初始内核位置不是所有点的位置，而是点的离散版本的位置，其中点被分类到其粗糙度对应于带宽的网格上。将此选项设置为True将加速算法，因为较少的种子将被初始化。默认值：False.如果种子参数(seeds)不为None则忽略。
+c）主要属性
+cluster<em>centers</em> : 数组类型。计算出的聚类中心的坐标。
+labels_ :数组类型。每个数据点的分类标签。</p>
+
+<p>通俗理解Meanshift均值漂移算法 
+Meanshift车手?? 漂移?? 秋名山???   不,不,他是一组算法,  今天我就带大家来了解一下机器学习中的Meanshift均值漂移.
+Meanshift算法他的本质是一个迭代的过程 , 我先给大家讲一下他的底层原理</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>核函数</title>
+			<link>/posts/a1/</link>
+			<pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a1/</guid>
+			<description> 核函数 svm.SVC分类器简介： C：C-SVC的惩罚参数C?默认值是1.0
+C越大，相当于惩罚松弛变量，希望松弛变量接近0，即对误分类的惩罚增大，趋向于对训练集全分对的情况，这样对训练集测试时准确率很高，但泛化能力弱。C值小，对误分类的惩罚减小，允许容错，将他们当成噪声点，泛化能力较强。
+kernel ：核函数，默认是rbf，可以是‘linear’,‘poly’, ‘rbf’ liner – 线性核函数：u&amp;rsquo;v poly – 多项式核函数：(gamma*u&amp;rsquo;*v + coef0)^degree rbf – RBF（径向基）高斯核函数：exp(-gamma|u-v|^2)
+degree ：多项式poly函数的维度，默认是3，选择其他核函数时会被忽略。
+gamma ： ‘rbf’,‘poly’ 和‘sigmoid’的核函数参数。默认是’auto’，则会选择1/n_features
+coef0 ：核函数的常数项。对于‘poly’和 ‘sigmoid’有用。
+probability ：是否采用概率估计？.默认为False 置信度
+shrinking ：是否采用shrinking heuristic方法，默认为true
+tol ：停止训练的误差值大小，默认为1e-3
+cache_size ：核函数cache缓存大小，默认为200
+class_weight ：类别的权重，字典形式传递。设置第几类的参数C为weight*C(C-SVC中的C)
+verbose ：允许冗余输出？
+max_iter ：最大迭代次数。-1为无限制。
+decision_function_shape ：‘ovo’, ‘ovr’ or None, default=None3
+random_state ：数据洗牌时的种子值，int值 —————————————————————— 核函数相对应的参数： 1）对于线性核函数，没有专门需要设置的参数 2）对于多项式核函数，有三个参数。-d用来设置多项式核函数的最高次项次数，也就是公式中的d，默认值是3。-g用来设置核函数中的gamma参数设置，也就是公式中的gamma，默认值是1/k（特征数）。-r用来设置核函数中的coef0，也就是公式中的第二个r，默认值是0。 3）对于RBF核函数，有一个参数。-g用来设置核函数中的gamma参数设置，也就是公式中gamma，默认值是1/k（k是特征数）。 4）对于sigmoid核函数，有两个参数。-g用来设置核函数中的gamma参数设置，也就是公式中gamma，默认值是1/k（k是特征数）。-r用来设置核函数中的coef0，也就是公式中的第二个r，默认值是0。
+—————————————————————————— svm(核函数、高斯核函数tbf) https://www.cnblogs.com/volcao/p/9465214.html Gridsearch 网格搜索
+———————————————————————————————————————————————— 核函数 用处 公式 linear kernel 线性可分时，特征数量多时，样本数量多再补充一些特征时，linear kernel可以是RBF kernel的特殊情况 Polynomial kernel image processing，参数比RBF多，取值范围是(0,inf) Gaussian radial basis function (RBF) 通用，线性不可分时，特征维数少 样本数量正常时，在没有先验知识时用，取值在[0,1] Sigmoid kernel 生成神经网络，在某些参数下和RBF很像，可能在某些参数下是无效的 Gaussian kernel 通用，在没有先验知识时用 Laplace RBF kernel 通用，在没有先验知识时用 Hyperbolic tangent kernel neural networks中用 Bessel function of the first kind Kernel 可消除函数中的交叉项 ANOVA radial basis kernel 回归问题 Linear splines kernel in one-dimension text categorization，回归问题，处理大型稀疏向量 </description>
+			<content type="html"><![CDATA[
+
+<h1 id="核函数">核函数</h1>
+
+<p>svm.SVC分类器简介：
+C：C-SVC的惩罚参数C?默认值是1.0</p>
+
+<p>C越大，相当于惩罚松弛变量，希望松弛变量接近0，即对误分类的惩罚增大，趋向于对训练集全分对的情况，这样对训练集测试时准确率很高，但泛化能力弱。C值小，对误分类的惩罚减小，允许容错，将他们当成噪声点，泛化能力较强。</p>
+
+<p>kernel ：核函数，默认是rbf，可以是‘linear’,‘poly’, ‘rbf’
+        liner – 线性核函数：u&rsquo;v
+        poly – 多项式核函数：(gamma*u&rsquo;*v + coef0)^degree
+        rbf – RBF（径向基）高斯核函数：exp(-gamma|u-v|^2)</p>
+
+<p>degree ：多项式poly函数的维度，默认是3，选择其他核函数时会被忽略。</p>
+
+<p>gamma ： ‘rbf’,‘poly’ 和‘sigmoid’的核函数参数。默认是’auto’，则会选择1/n_features</p>
+
+<p>coef0 ：核函数的常数项。对于‘poly’和 ‘sigmoid’有用。</p>
+
+<p>probability ：是否采用概率估计？.默认为False   置信度</p>
+
+<p>shrinking ：是否采用shrinking heuristic方法，默认为true</p>
+
+<p>tol ：停止训练的误差值大小，默认为1e-3</p>
+
+<p>cache_size ：核函数cache缓存大小，默认为200</p>
+
+<p>class_weight ：类别的权重，字典形式传递。设置第几类的参数C为weight*C(C-SVC中的C)</p>
+
+<p>verbose ：允许冗余输出？</p>
+
+<p>max_iter ：最大迭代次数。-1为无限制。</p>
+
+<p>decision_function_shape ：‘ovo’, ‘ovr’ or None, default=None3</p>
+
+<p>random_state ：数据洗牌时的种子值，int值
+——————————————————————
+核函数相对应的参数：
+1）对于线性核函数，没有专门需要设置的参数
+2）对于多项式核函数，有三个参数。-d用来设置多项式核函数的最高次项次数，也就是公式中的d，默认值是3。-g用来设置核函数中的gamma参数设置，也就是公式中的gamma，默认值是1/k（特征数）。-r用来设置核函数中的coef0，也就是公式中的第二个r，默认值是0。
+3）对于RBF核函数，有一个参数。-g用来设置核函数中的gamma参数设置，也就是公式中gamma，默认值是1/k（k是特征数）。
+4）对于sigmoid核函数，有两个参数。-g用来设置核函数中的gamma参数设置，也就是公式中gamma，默认值是1/k（k是特征数）。-r用来设置核函数中的coef0，也就是公式中的第二个r，默认值是0。</p>
+
+<p>——————————————————————————
+svm(核函数、高斯核函数tbf)
+<a href="https://www.cnblogs.com/volcao/p/9465214.html">https://www.cnblogs.com/volcao/p/9465214.html</a>
+Gridsearch 网格搜索</p>
+
+<p>————————————————————————————————————————————————
+核函数    用处    公式
+linear kernel    线性可分时，特征数量多时，样本数量多再补充一些特征时，linear kernel可以是RBF kernel的特殊情况    
+Polynomial kernel    image processing，参数比RBF多，取值范围是(0,inf)    
+Gaussian radial basis function (RBF)    通用，线性不可分时，特征维数少 样本数量正常时，在没有先验知识时用，取值在[0,1]    
+Sigmoid kernel    生成神经网络，在某些参数下和RBF很像，可能在某些参数下是无效的    
+Gaussian kernel    通用，在没有先验知识时用    
+Laplace RBF kernel    通用，在没有先验知识时用    
+Hyperbolic tangent kernel    neural networks中用    
+Bessel function of the first kind Kernel    可消除函数中的交叉项    
+ANOVA radial basis kernel    回归问题    
+Linear splines kernel in one-dimension    text categorization，回归问题，处理大型稀疏向量    </p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>聚类模型：</title>
+			<link>/posts/j11/</link>
+			<pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j11/</guid>
+			<description>聚类模型：  网格搜索： Sklean.model_selection import GridSearchCV from sklearn import svm classifier = svm.SVC() #初始化网格搜索 scoreing=[&#39;precision&#39;,&#39;recall_weighted&#39;] for score in scoreing: print(&#39;===========&#39;,score) param_grid = [{&#39;kernel&#39;:[&#39;linear&#39;],&#39;C&#39;:[1,10,100,300]}, {&#39;kernel&#39;:[&#39;rbf&#39;],&#39;C&#39;:[1,10]}]#候选参数 gride = GridSearchCV(classifier,param_grid,cv=2,scoring=score) gride.fit(train_X,train_y) # print(gride.scorer_) for i in gride.cv_results_:#去除各个候选值，及对应得分 print(i) print(&#39;最佳参数：{}&#39;.format(gride.best_params_)) print(&#39;最佳得分：{}&#39;.format(gride.best_score_)) Kmeans 与kmeans++ from sklearn.cluster import KMeans # init:初始化 # n_cluster:默认为8个 #n_init:：整形，缺省值=10 用不同的质心初始化值运行算法的次数 #n_jobs :处理器核数 kmeans = KMeans(init=&amp;quot;k-means++&amp;quot;,n_clusters=200,n_init=5,n_jobs=4) kmeans.fit(dataset_X) data= np.array([[1,2,3,4]]) print(data.squeeze()) #squeeze 除去维度为1 的维度 print(np.squeeze([[1,2,3,4]])) a = [[1, 0, 1], [0, 1, 0], [1, 0, 1]] choices = [-10, 10] c=np.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="聚类模型">聚类模型：</h1>
+
+<pre><code>    
+    网格搜索：
+    Sklean.model_selection import GridSearchCV
+        from sklearn import svm
+        classifier = svm.SVC()
+        #初始化网格搜索
+        
+        scoreing=['precision','recall_weighted']
+        for score in scoreing:
+            print('===========',score)
+            param_grid = [{'kernel':['linear'],'C':[1,10,100,300]},
+                         {'kernel':['rbf'],'C':[1,10]}]#候选参数
+            gride = GridSearchCV(classifier,param_grid,cv=2,scoring=score)
+            gride.fit(train_X,train_y)
+        #     print(gride.scorer_)
+            
+            for i in gride.cv_results_:#去除各个候选值，及对应得分
+                print(i)
+            print('最佳参数：{}'.format(gride.best_params_))
+            print('最佳得分：{}'.format(gride.best_score_)) 
+        
+    
+    
+    Kmeans 与kmeans++
+    from sklearn.cluster import KMeans
+    # init:初始化
+    #  n_cluster:默认为8个
+    #n_init:：整形，缺省值=10 用不同的质心初始化值运行算法的次数
+    #n_jobs :处理器核数
+    kmeans = KMeans(init=&quot;k-means++&quot;,n_clusters=200,n_init=5,n_jobs=4)
+    kmeans.fit(dataset_X)
+    
+    
+    data= np.array([[1,2,3,4]])
+    print(data.squeeze()) #squeeze 除去维度为1 的维度
+    print(np.squeeze([[1,2,3,4]]))
+    
+    a = [[1, 0, 1], [0, 1, 0], [1, 0, 1]]
+    choices = [-10, 10]
+    c=np.choose(a, choices)
+    print（c）
+    
+    图片矢量化：
+    import numpy as np
+    
+    import cv2
+    def run(image_path,num_bits):
+        &quot;&quot;&quot;
+        image_path:图片路径
+        num_bits:压缩时的位数，影响聚类的簇数
+        &quot;&quot;&quot;
+        if num_bits&gt;=8 or num_bits&lt;1:return '请传入正确的位数'
+        k_nums = np.power(2,num_bits)  #power 2的n次幂
+        #计算压缩率
+        rate= 100*(8-num_bits)/8
+        #读图片
+        data_image= cv2.imread(image_path,0)#0:灰度图
+        data_image_new=img_VQ(data_image,k_nums)
+        plot_imgs(data_image,data_image_new,rate)
+    
+    
+    
+    均值漂移Meanshift
+        #构建Mean_shift 对象,评估带宽
+        from sklearn.cluster import MeanShift,estimate_bandwidth
+        &quot;&quot;&quot;
+        quantile分位数：浮点数，默认0.3
+        在[0,1]之间，0.5意味着使用成对距离的中值（任何点与其最近邻居之间的距离的中值）
+        n_samples：使用的样本数，不指定，就使用所有的样本
+        
+        &quot;&quot;&quot;
+        bandwidth= estimate_bandwidth(dataset_X,quantile=0.1,n_samples=len(dataset_X))
+        print('预计带宽：{}'.format(bandwidth))
+        
+        
+        #bin_seeding 为True  带宽，网格数据点   带宽直接影响簇（聚类）的数量
+        
+        meanshift =MeanShift(bandwidth=bandwidth,bin_seeding=True)
+        meanshift.fit(dataset_X)
+        
+        print(meanshift.cluster_centers_)
+        print(meanshift.labels_)
+        
+    
+    凝聚层次聚类：
+        #scipy 基于numpy构建的多科学计算库，层次模块
+        
+        from sklearn.cluster import AgglomerativeClustering#凝聚层次
+        import scipy.cluster.hierarchy  as sch#层次模块，用于绘图
+        dendrogram = sch.dendrogram(sch.linkage(y=X,method=&quot;ward&quot;))
+        #ward 聚类内的平方差的总和
+    
+        agg=AgglomerativeClustering(n_clusters=5,affinity='euclidean',linkage='ward')
+        
+        n_leaves_ 叶子数
+        
+    DBSCAN:
+    #构建简单的DBSCAN模型
+    from sklearn.cluster import DBSCAN
+    model=DBSCAN(eps=0.5,min_samples=5)
+    model.fit(dataset_X)
+    Eps: 是相应的半径
+    
+    金融股票：
+    import tushare as ts
+    #6000   sz  sh
+    # 获取历史数据     tushare 金融数据信息
+    data = ts.get_hist_data(code='600000',start='2018-01-01',end='2018-12-30',ktype='W')
+    #获取
+    data = ts.get_k_data(code='600000')#k线图数据
+    #data.to_csv('600000.csv',columns=['open','close'])
+    data=ts.get_today_all()#当天所有的交易息
+    
+    LBP直方图：
+        from glob import glob #加载目录
+        import  os
+        import cv2
+        from sklearn import preprocessing
+        img_files = glob(os.path.join('C:/Users/lsl/Desktop/img','*.jpg'))
+        # print(img_files)
+        img_labels = ['gaoyuanyuan','gaoyuanyuan','aa','gaoyuanyuan','liang','liang','liang','liang','liang','liang']
+        #加载特证池
+        face_cascade = cv2.CascadeClassifier(cv2.haarcascades+'haarcascade_frontalface_default.xml')
+        face_imgs,encoder_labels,label_encoder = load_train_set(img_files,img_labels,face_cascade)
+        print(face_imgs,encoder_labels,label_encoder)
+        
+        
+    
+    评估：---轮廓系数
+    
+    from sklearn.metrics import silhouette_score
+    #参数：数据集，聚类标签，欧式距离，参数评估样本数
+    si_score=silhouette_score(X,model.labels_,metric=&quot;euclidean&quot;,sample_size=len(X))
+    print('si_score:{:.4f}'.format(si_score))
+    
+    
+
+
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>数据的预处理</title>
+			<link>/posts/j10/</link>
+			<pubDate>Tue, 26 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j10/</guid>
+			<description>数据的预处理 From sklearn import preprocessing 均值移除：Mean removal 去除均值和方差进行缩放。（均值为0，标准差为1) preprocessing.scale(data) #0均值处理 范围缩放 scaling 必要性：数据点中每个特征列的数值范围可能变化很大，因此，有时需要将特征列的数值范围缩放到合理的大小。 preprocessing.MinMaxScaler(feature_range=(0,1)) # 缩放到（0,1）之间
+归一化 Normalization 用于需要对特征向量的值进行调整时，以保证每个特征向量的值都缩放到相同的数值范围。机器学习中最常用的归 一化形式就是将特征向量调整为L1范数，归一化就是L1/L2为1 preprocessing.normalize(data,norm=&amp;lsquo;l1&amp;rsquo;) 二值化 Binarization 1，二值化之后的数据点都是0或者1，所以叫做二值化。 2，计算方法是，将所有大于threshold的数据都改为1，小于等于threshold的都设为0。 3，经常用于出现某种特征（比如设为1），或者没有出现某种特征（设为0）的应用场合。 preprocessing.Binarizer(threshold=1.4).fit_transform(data) #小于等于 threshold 为0
+独热编码One-Hot Encoding 通常，需要处理的数值都是稀疏地，散乱地分布在空间中，但我们并不需要存储这些大数值，这时就需要使用独热 编码，独热编码实际上是一种收紧特征向量的工具。 preprocessing.OneHotEncoder()
+数据离散化 作用：将连续型数据离散化 ages = [20,33,54,23,66,77,88,99,26,63] bins = [18,25,35,60,100] labels = [&amp;lsquo;少年&amp;rsquo;,&amp;lsquo;青年&amp;rsquo;,&amp;lsquo;中年&amp;rsquo;,&amp;lsquo;老年&amp;rsquo;] new_ages = pd.cut(x=ages,bins=bins,labels=labels,retbins=True)#retbins:返回bins print(new_ages)</description>
+			<content type="html"><![CDATA[
+
+<h1 id="数据的预处理">数据的预处理</h1>
+
+<p>From sklearn import  preprocessing
+均值移除：Mean removal
+    去除均值和方差进行缩放。（均值为0，标准差为1)
+   preprocessing.scale(data) #0均值处理
+范围缩放  scaling
+    必要性：数据点中每个特征列的数值范围可能变化很大，因此，有时需要将特征列的数值范围缩放到合理的大小。
+preprocessing.MinMaxScaler(feature_range=(0,1)) # 缩放到（0,1）之间</p>
+
+<p>归一化 Normalization
+    用于需要对特征向量的值进行调整时，以保证每个特征向量的值都缩放到相同的数值范围。机器学习中最常用的归 一化形式就是将特征向量调整为L1范数，归一化就是L1/L2为1
+preprocessing.normalize(data,norm=&lsquo;l1&rsquo;)
+二值化  Binarization
+    1，二值化之后的数据点都是0或者1，所以叫做二值化。
+    2，计算方法是，将所有大于threshold的数据都改为1，小于等于threshold的都设为0。 3，经常用于出现某种特征（比如设为1），或者没有出现某种特征（设为0）的应用场合。
+    preprocessing.Binarizer(threshold=1.4).fit_transform(data) #小于等于 threshold 为0</p>
+
+<p>独热编码One-Hot Encoding
+    通常，需要处理的数值都是稀疏地，散乱地分布在空间中，但我们并不需要存储这些大数值，这时就需要使用独热 编码，独热编码实际上是一种收紧特征向量的工具。
+preprocessing.OneHotEncoder()</p>
+
+<p>数据离散化
+作用：将连续型数据离散化
+ages = [20,33,54,23,66,77,88,99,26,63] bins = [18,25,35,60,100] labels = [&lsquo;少年&rsquo;,&lsquo;青年&rsquo;,&lsquo;中年&rsquo;,&lsquo;老年&rsquo;] new_ages = pd.cut(x=ages,bins=bins,labels=labels,retbins=True)#retbins:返回bins print(new_ages)</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>分类算法和聚类算法</title>
+			<link>/posts/j9/</link>
+			<pubDate>Mon, 25 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j9/</guid>
+			<description>分类算法和聚类算法 分类是指有监督的学习，即要分类的样本是有标记的,类别是已知的； 聚类是指无监督的学习，样本没有标记，根据某种相似度度量把样本聚为k类。
+简单地说，分类(Categorization or Classification)就是按照某种标准给对象贴标签(label)，再根据标签来区分归类。 简单地说，聚类是指事先没有“标签”而通过某种成团分析找出事物之间存在聚集性原因的过程。 区别是，分类是事先定义好类别 ，类别数不变 。分类器需要由人工标注的分类训练语料训练得到，属于有指导学习范畴。聚类则没有事先预定的类别，类别数不确定。 聚类不需要人工标注和预先训练分类器，类别在聚类过程中自动生成 。分类适合类别或分类体系已经确定的场合，比如按照国图分类法分类图书；聚类则适合不存在分类体系、类别数不确定的场合，一般作为某些应用的前端，比如多文档文摘、搜索引擎结果后聚类(元搜索)等。 分类的目的是学会一个分类函数或分类模型(也常常称作分类器 ),该模型能把数据库中的数据项映射到给定类别中的某一个类中。 要构造分类器，需要有一个训练样本数据集作为输入。训练集由一组数据库记录或元组构成，每个元组是一个由有关字段(又称属性或特征)值组成的特征向量，此外，训练样本还有一个类别标记。一个具体样本的形式可表示为：(v1,v2,&amp;hellip;,vn; c)；其中vi表示字段值，c表示类别。分类器的构造方法有统计方法、机器学习方法、神经网络方法等等。 聚类(clustering)是指根据“物以类聚”原理，将本身没有类别的样本聚集成不同的组，这样的一组数据对象的集合叫做簇，并且对每一个这样的簇进行描述的过程。它的目的是使得属于同一个簇的样本之间应该彼此相似，而不同簇的样本应该足够不相似。与分类规则不同，进行聚类前并不知道将要划分成几个组和什么样的组，也不知道根据哪些空间区分规则来定义组。其目的旨在发现空间实体的属性间的函数关系，挖掘的知识用以属性名为变量的数学方程来表示。聚类技术正在蓬勃发展，涉及范围包括数据挖掘、统计学、机器学习、空间数据库技术、生物学以及市场营销等领域，聚类分析已经成为数据挖掘研究领域中一个非常活跃的研究课题。常见的聚类算法包括：K-均值聚类算法、K-中心点聚类算法、CLARANS、 BIRCH、CLIQUE、DBSCAN等。</description>
+			<content type="html"><![CDATA[
+
+<h1 id="分类算法和聚类算法">分类算法和聚类算法</h1>
+
+<p>分类是指有监督的学习，即要分类的样本是有标记的,类别是已知的；
+聚类是指无监督的学习，样本没有标记，根据某种相似度度量把样本聚为k类。</p>
+
+<p>简单地说，分类(Categorization or Classification)就是按照某种标准给对象贴标签(label)，再根据标签来区分归类。
+简单地说，聚类是指事先没有“标签”而通过某种成团分析找出事物之间存在聚集性原因的过程。
+区别是，分类是事先定义好类别 ，类别数不变 。分类器需要由人工标注的分类训练语料训练得到，属于有指导学习范畴。聚类则没有事先预定的类别，类别数不确定。 聚类不需要人工标注和预先训练分类器，类别在聚类过程中自动生成 。分类适合类别或分类体系已经确定的场合，比如按照国图分类法分类图书；聚类则适合不存在分类体系、类别数不确定的场合，一般作为某些应用的前端，比如多文档文摘、搜索引擎结果后聚类(元搜索)等。
+分类的目的是学会一个分类函数或分类模型(也常常称作分类器 ),该模型能把数据库中的数据项映射到给定类别中的某一个类中。 要构造分类器，需要有一个训练样本数据集作为输入。训练集由一组数据库记录或元组构成，每个元组是一个由有关字段(又称属性或特征)值组成的特征向量，此外，训练样本还有一个类别标记。一个具体样本的形式可表示为：(v1,v2,&hellip;,vn; c)；其中vi表示字段值，c表示类别。分类器的构造方法有统计方法、机器学习方法、神经网络方法等等。
+聚类(clustering)是指根据“物以类聚”原理，将本身没有类别的样本聚集成不同的组，这样的一组数据对象的集合叫做簇，并且对每一个这样的簇进行描述的过程。它的目的是使得属于同一个簇的样本之间应该彼此相似，而不同簇的样本应该足够不相似。与分类规则不同，进行聚类前并不知道将要划分成几个组和什么样的组，也不知道根据哪些空间区分规则来定义组。其目的旨在发现空间实体的属性间的函数关系，挖掘的知识用以属性名为变量的数学方程来表示。聚类技术正在蓬勃发展，涉及范围包括数据挖掘、统计学、机器学习、空间数据库技术、生物学以及市场营销等领域，聚类分析已经成为数据挖掘研究领域中一个非常活跃的研究课题。常见的聚类算法包括：K-均值聚类算法、K-中心点聚类算法、CLARANS、 BIRCH、CLIQUE、DBSCAN等。</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>回归模型   评估，模型保存</title>
+			<link>/posts/j8/</link>
+			<pubDate>Mon, 25 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j8/</guid>
+			<description>回归模型 评估，模型保存 正太分布：np.random.normal(size = np.range(100).shape)
+分割数据集 from sklearn.model_selection import train_test_split #整合 x and y dataset=[(i,j) for i ,j in zip(newX,newY)]
+print(dataset) train_set,test_set = train_test_split(dataset,test_size=0.2,random_state=30) 线性回归模型： from sklearn import linear_model linear_regressor= linearmodel.LinearRegression()# 构建线性回归器 Coef 查看斜率 Intercept_ 查看截距 岭回归： from sklearn import linear_model #alpha 越大 结果偏向于异常点 max_iter 模型迭代的最大次数 fit_intercept 是否要截距
+redge_regressor = linear_model.Ridge(alpha=10,max_iter=1000,fit_intercept=False)
+多项式回归： from sklearn.preprocessing import PolynomialFeatures polyNomial= PolynomialFeatures(degree=2) #n次方程 数值出现的是n+1个数据
+决策树回归： from sklearn.tree import DecisionTreeRegressor decision_regressor = DecisionTreeRegressor(max_depth=4) 决策树的优化： from sklearn.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="回归模型-评估-模型保存">回归模型   评估，模型保存</h1>
+
+<p>正太分布：np.random.normal(size = np.range(100).shape)</p>
+
+<p>分割数据集
+from sklearn.model_selection import train_test_split
+#整合 x and y
+dataset=[(i,j) for i ,j in zip(newX,newY)]</p>
+
+<h1 id="print-dataset">print(dataset)</h1>
+
+<p>train_set,test_set = train_test_split(dataset,test_size=0.2,random_state=30)
+线性回归模型：
+from sklearn import linear_model
+linear_regressor= linear<em>model.LinearRegression()# 构建线性回归器
+Coef</em>   查看斜率
+Intercept_  查看截距
+岭回归：
+from sklearn import linear_model
+#alpha 越大 结果偏向于异常点  max_iter 模型迭代的最大次数  fit_intercept 是否要截距</p>
+
+<p>redge_regressor = linear_model.Ridge(alpha=10,max_iter=1000,fit_intercept=False)</p>
+
+<p>多项式回归：
+from sklearn.preprocessing import  PolynomialFeatures
+polyNomial= PolynomialFeatures(degree=2) #n次方程  数值出现的是n+1个数据</p>
+
+<p>决策树回归：
+from sklearn.tree import  DecisionTreeRegressor
+decision_regressor = DecisionTreeRegressor(max_depth=4)
+    决策树的优化：
+    from sklearn.ensemble import AdaBoostRegressor=ada_regressor = AdaBoostRegressor(decision_regressor,n_estimators=400)
+    ada_regressor.fit(train_X,train_Y)
+    绘制决策树：
+    import graphviz
+    from sklearn import tree
+    import os
+    os.environ[&ldquo;PATH&rdquo;] += os.pathsep + &lsquo;E:\suanfa\bin&rsquo;
+    dot_data = tree.export_graphviz(decision_tree=decision_regressor,out_file=None,rounded=True,filled=True)
+    graph = graphviz.Source(dot_data)
+    #生成文件view 是否显示文件
+    # graph
+    graph.render(&lsquo;tree&rsquo;,view=True)</p>
+
+<p>随机森林回归：
+from sklearn.ensemble import RandomForestClassifier</p>
+
+<p>#n_estimators :决策树的个数，越大越好，但是会达到一定的边界
+rf_regressor= RandomForestClassifier(n_estimators=1000,max_depth=10,min_samples_split=10)</p>
+
+<p>支持向量机SVR：
+from sklearn.svm import SVR
+classifier = SVR(kernel=&lsquo;linear&rsquo;,degree=3)# 此处给linear线性核函数  poly多项式核函数  rbf 径向基</p>
+
+<p>评估模型
+From sklean import   metrics
+#误差越小，模型越好，得分越大，模型越好
+print(&ldquo;平均绝对误差:{}&ldquo;.format(metrics.mean_absolute_error(y_predict,trainY)))
+print(&ldquo;均方误差MSE:{}&ldquo;.format(metrics.mean_squared_error(y_predict,trainY)))
+print(&ldquo;解释方差分:{}&ldquo;.format(metrics.explained_variance_score(y_predict,trainY)))
+print(&ldquo;R2得分:{}&ldquo;.format(metrics.r2_score(y_predict,trainY)))</p>
+
+<p>模型的保存与加载
+#保存路径
+save_path =&ldquo;linearmodel.txt&rdquo;
+from sklearn.externals import joblib
+#模型的保存</p>
+
+<h1 id="joblib-dump-linear-regressor-save-path">joblib.dump(linear_regressor,save_path)</h1>
+
+<p>#模型的加载
+mymodel = joblib.load(save_path)</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Django通过xlwt用文件流的方式下载excel文档</title>
+			<link>/posts/a15/</link>
+			<pubDate>Thu, 21 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a15/</guid>
+			<description> Django通过xlwt用文件流的方式下载excel文档 通过文件流的方式直接在浏览器下载可以节省服务器的硬盘空间，也比较方便快捷 import xlwt import StringIO import web urls = ( &#39;/rim_request&#39;,&#39;rim_request&#39;, &#39;/rim_export&#39;,&#39;rim_export&#39;, &#39;/(.*)&#39;, &#39;index&#39; ) class rim_export: #render = web.template.render(&#39;adsl&#39;) def GET(self): web.header(&#39;Content-type&#39;,&#39;application/vnd.ms-excel&#39;) #指定返回的类型 web.header(&#39;Transfer-Encoding&#39;,&#39;chunked&#39;) web.header(&#39;Content-Disposition&#39;,&#39;attachment;filename=&amp;quot;export.xls&amp;quot;&#39;) #设定用户浏览器显示的保存文件名 wb=xlwt.Workbook() wb.encoding=&#39;gbk&#39; ws=wb.add_sheet(&#39;1&#39;) ws.write(0,1,&#39;123&#39;) #如果要写中文请使用UNICODE sio=StringIO.StringIO() wb.save(sio) #这点很重要，传给save函数的不是保存文件名，而是一个StringIO流 return sio.getvalue()  </description>
+			<content type="html"><![CDATA[
+
+<h1 id="django通过xlwt用文件流的方式下载excel文档">Django通过xlwt用文件流的方式下载excel文档</h1>
+
+<pre><code>通过文件流的方式直接在浏览器下载可以节省服务器的硬盘空间，也比较方便快捷
+import xlwt
+import StringIO
+import web
+urls = (
+ '/rim_request','rim_request',
+ '/rim_export','rim_export',
+ '/(.*)', 'index'
+)
+class rim_export:
+ #render = web.template.render('adsl')
+ def GET(self):
+  web.header('Content-type','application/vnd.ms-excel')  #指定返回的类型
+  web.header('Transfer-Encoding','chunked')
+  web.header('Content-Disposition','attachment;filename=&quot;export.xls&quot;') #设定用户浏览器显示的保存文件名
+  wb=xlwt.Workbook()
+  wb.encoding='gbk'
+  ws=wb.add_sheet('1')
+  ws.write(0,1,'123')  #如果要写中文请使用UNICODE
+  sio=StringIO.StringIO()
+  wb.save(sio)   #这点很重要，传给save函数的不是保存文件名，而是一个StringIO流
+  return sio.getvalue()
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>CMDB设计思路</title>
+			<link>/posts/a14/</link>
+			<pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a14/</guid>
+			<description>CMDB设计思路 参考博客：https://www.cnblogs.com/laowenBlog/p/6825420.html
+　参考博客2：https://www.cnblogs.com/yangmv/p/6479387.html
+　1、cmdb定义
+　1. 从基础设施的对象来说，计算资源、存储资源、网络资源、IP资源、机房资源等等
+　2. 在CMDB的管理上，把你的资源对象罗列出来，关系梳理清楚，就可以构建其能力管理了。
+　3. 从上层的业务资源来说，建立以应用为中心的资源管理逻辑，把 一切都看成应用的资源来看待。
+　4. 比如说Host，应用包、权限、RDS服务、cache资源等等。
+　2、构建“自动发现+标准流程+人工维护”的CMDB数据库
+　1. 自动发现是降低维护成本的一种有效方式，但我认为确保一个CMDB库信息的有效性，还是需要其他几个手段，标准化的流程和人工维护。
+　2. 标准化的流程是运维资源信息变更的场景化流程梳理，比如说机房搬迁，服务器搬迁，服务器下架等等，这个流程需要识别出来，并确定相应的CMDB配置项状态变更过程。
+　3. 人工维护，在有些流程没有构建起来的情况下，则需要通过人工变更的能力把CMDB信息维护准确，
+　比如说主机所属负责人变更，这个时候不建议流程了，可以通过人工直接变更完成。那如何确保维护准确呢？
+　3、CMDB解决痛点
+　1. 人工录入数据、准确率低
+　2. 没有及时维护、数据过期
+　3. 数据来源多、存在冲突</description>
+			<content type="html"><![CDATA[
+
+<h1 id="cmdb设计思路">CMDB设计思路</h1>
+
+<p>参考博客：<a href="https://www.cnblogs.com/laowenBlog/p/6825420.html">https://www.cnblogs.com/laowenBlog/p/6825420.html</a></p>
+
+<p>　　  参考博客2：<a href="https://www.cnblogs.com/yangmv/p/6479387.html">https://www.cnblogs.com/yangmv/p/6479387.html</a></p>
+
+<p>　　1、cmdb定义</p>
+
+<p>　　　　　　1. 从基础设施的对象来说，计算资源、存储资源、网络资源、IP资源、机房资源等等</p>
+
+<p>　　　　　　2. 在CMDB的管理上，把你的资源对象罗列出来，关系梳理清楚，就可以构建其能力管理了。</p>
+
+<p>　　　　　　3. 从上层的业务资源来说，建立以应用为中心的资源管理逻辑，把 一切都看成应用的资源来看待。</p>
+
+<p>　　　　　　4. 比如说Host，应用包、权限、RDS服务、cache资源等等。</p>
+
+<p>　　2、构建“自动发现+标准流程+人工维护”的CMDB数据库</p>
+
+<p>　　　　　　1. 自动发现是降低维护成本的一种有效方式，但我认为确保一个CMDB库信息的有效性，还是需要其他几个手段，标准化的流程和人工维护。</p>
+
+<p>　　　　　　2. 标准化的流程是运维资源信息变更的场景化流程梳理，比如说机房搬迁，服务器搬迁，服务器下架等等，这个流程需要识别出来，并确定相应的CMDB配置项状态变更过程。</p>
+
+<p>　　　　　　3. 人工维护，在有些流程没有构建起来的情况下，则需要通过人工变更的能力把CMDB信息维护准确，</p>
+
+<p>　　　　　　    比如说主机所属负责人变更，这个时候不建议流程了，可以通过人工直接变更完成。那如何确保维护准确呢？</p>
+
+<p>　　3、CMDB解决痛点</p>
+
+<p>　　　　　　1. 人工录入数据、准确率低</p>
+
+<p>　　　　　　2. 没有及时维护、数据过期</p>
+
+<p>　　　　　　3. 数据来源多、存在冲突</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>openf-falcon安装</title>
+			<link>/posts/a13/</link>
+			<pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a13/</guid>
+			<description>openf-falcon安装  环境准备：https://book.open-falcon.org/zh_0_2/quick_install/prepare.html 参考博客：https://www.cnblogs.com/yaohong/p/8713723.html 1、依赖组件 1）安装一些基本工具（与open-falcon无关） yum install -y wget yum install -y vim yum install -y git 2） 安装redis yum install -y redis systemctl start redis # 启动redis systemctl enable redis # 设置redis开机启动 systemctl status redis # 查看redis是否开启 3）安装mysql wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm # 下载repo源 rpm -ivh mysql-community-release-el7-5.noarch.rpm # 安装该rpm包 yum install mysql-server -y # 安装mysql systemctl start mysql systemctl status mysql 4）初始化mysql表结构 复制代码 cd /tmp/ &amp;amp;&amp;amp; git clone https://github.com/open-falcon/falcon-plus.git cd /tmp/falcon-plus/scripts/mysql/db_schema/ mysql -h 127.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="openf-falcon安装">openf-falcon安装</h1>
+
+<pre><code> 环境准备：https://book.open-falcon.org/zh_0_2/quick_install/prepare.html
+
+　　   参考博客：https://www.cnblogs.com/yaohong/p/8713723.html
+
+　　1、依赖组件
+
+　　　　1）安装一些基本工具（与open-falcon无关）
+
+　　　　　　　　yum install -y wget
+
+　　　　　　　　yum install -y vim
+
+　　　　　　　　yum install -y git
+
+　　　　2） 安装redis
+
+　　　　　　　　yum install -y redis
+
+　　　　　　　　systemctl start redis     # 启动redis
+
+　　　　　　　　systemctl enable redis      # 设置redis开机启动
+
+　　　　　　　　systemctl status redis    # 查看redis是否开启
+
+　　　　3）安装mysql
+
+　　　　　　　　wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm      # 下载repo源
+
+　　　　　　　　rpm -ivh mysql-community-release-el7-5.noarch.rpm                                    # 安装该rpm包
+
+　　　　　　　　yum install mysql-server -y                                                                           # 安装mysql
+
+　　　　　　　　systemctl start mysql
+
+　　　　　　　　systemctl status mysql
+
+　　　　4）初始化mysql表结构
+
+复制代码
+cd /tmp/ &amp;&amp; git clone https://github.com/open-falcon/falcon-plus.git 
+cd /tmp/falcon-plus/scripts/mysql/db_schema/
+mysql -h 127.0.0.1 -u root -p &lt; 1_uic-db-schema.sql
+mysql -h 127.0.0.1 -u root -p &lt; 2_portal-db-schema.sql
+mysql -h 127.0.0.1 -u root -p &lt; 3_dashboard-db-schema.sql
+mysql -h 127.0.0.1 -u root -p &lt; 4_graph-db-schema.sql
+mysql -h 127.0.0.1 -u root -p &lt; 5_alarms-db-schema.sql
+rm -rf /tmp/falcon-plus/
+复制代码
+　　2、安装Go语言开发环境 &amp; 编译打包 open-falcon-v0.2.1.tar.gz
+
+　　　　 注：https://book.open-falcon.org/zh_0_2/quick_install/prepare.html 中官方有提供编译包，如果编译过程不顺利可以直接下载编译包。
+
+　　　　1）安装go语言环境
+
+　　　　　　　　yum install -y epel-release
+
+　　　　　　　　yum install golang -y
+
+　　　　　　　　go version                   # 确认是否满足官方要求的Go &gt;= 1.6
+
+　　　　2）设置环境变量GOROOT和GOPATH
+
+　　　　　　　　export GOROOT=/usr/lib/golang
+
+　　　　　　　　export GOPATH=/home
+
+　　　　3）将open-falcon的源码从github上get下来
+
+　　　　　　　　mkdir -p $GOPATH/src/github.com/open-falcon        # 创建GOPATH下的一个本地的路径
+
+　　　　　　　　cd $GOPATH/src/github.com/open-falcon                   # 进入该路径
+
+　　　　　　　　git clone https://github.com/open-falcon/falcon-plus.git                    # 将源码get到本地
+
+　　　　4）编译源码并打包 open-falcon-v0.2.1.tar.gz
+
+　　　　　　　　cd $GOPATH/src/github.com/open-falcon/falcon-plus/                     # 进入本地源码路径下
+
+　　　　　　　　go get github.com/open-falcon/rrdlite               # 使用go get获取rrdtool工具包（make过程卡壳的一个点）
+
+　　　　　　　　make all                                                          # 编译所有模块
+
+　　　　　　　　make pack                                                        # 打包
+
+ 　　　　　　　　注：在$GOPATH/src/github.com/open-falcon/falcon-plus/ 目录下就多了刚才的压缩包 “open-falcon-v0.2.1.tar.gz”。
+
+1.2 部署open-falcon后端     返回顶部
+　　https://book.open-falcon.org/zh_0_2/quick_install/backend.html
+
+　　1、创建工作目录
+
+　　　　　　export WORKSPACE=/home/work
+
+　　　　　　mkdir -p $WORKSPACE
+
+　　2、解压二进制包（包名根据实际进行修改） 
+
+　　　　　　cd $GOPATH/src/github.com/open-falcon/falcon-plus/
+
+　　　　　　tar -xzvf open-falcon-v0.2.1.tar.gz -C $WORKSPACE
+
+　　　　　　注：由于我是根据本教程编译源码获得的压缩包，故需要切换到“$GOPATH/src/github.com/open-falcon/falcon-plus/”路径下。
+
+　　　　　　      包名由于make pack的时候就是open-falcon-v0.2.0.tar.gz，具体根据实际情况（17/12/6再部署时发现官方已有0.2.1）。
+
+　　3、修改配置文件说明
+
+　　　　　　下面这些模块需要使用mysql数据库，将下面文件的mysql用户名密码替换成真实的即可
+
+模块  配置文件所在路径
+aggregator      /home/work/aggregator/config/cfg.json
+graph   /home/work/graph/config/cfg.json
+hbs /home/work/hbs/config/cfg.json
+nodata  /home/work/nodata/config/cfg.json
+api /home/work/api/config/cfg.json
+alarm   /home/work/alarm/config/cfg.json
+　　4、启动后端命令
+
+cd $WORKSPACE
+./open-falcon start
+
+# 检查所有模块的启动状况
+./open-falcon check
+1.2.1 agent配置文件     返回顶部
+　　1、agent（数据采集组件）：golang项目
+
+　　　　　　1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标
+
+　　　　　　2. falcon-agent提供了一个proxy-gateway，用户可以方便的通过http接口，push数据到本机的gateway
+
+　　　　　　3. gateway会将用户push的数据转发到server端，所有自实现的插件都使用这个REST接口传送数据。。
+
+　　　　　　4. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。
+
+　　2、配置说明
+
+　　　　　　http://192.168.56.12:1988/ 
+
+　　　　　　vim /home/work/agent/config/cfg.json 
+
+
+复制代码
+{
+    &quot;debug&quot;: true,    # 控制一些debug信息的输出，生产环境通常设置为false
+    &quot;hostname&quot;: &quot;&quot;,   # agent采集了数据发给transfer，endpoint就设置为了hostname，默认通过`hostname`获取，如果配置中配置了hostname，就用配置中的
+    &quot;ip&quot;: &quot;&quot;,         # agent与hbs心跳的时候会把自己的ip地址发给hbs，agent会自动探测本机ip，如果不想让agent自动探测，可以手工修改该配置
+    &quot;plugin&quot;: {
+        &quot;enabled&quot;: false,                   # 默认不开启插件机制
+        &quot;dir&quot;: &quot;./plugin&quot;,                  # 把放置插件脚本的git repo clone到这个目录
+        &quot;git&quot;: &quot;https://github.com/open-falcon/plugin.git&quot;, # 放置插件脚本的git repo地址
+        &quot;logs&quot;: &quot;./logs&quot;                                    # 插件执行的log，如果插件执行有问题，可以去这个目录看log
+    },
+    &quot;heartbeat&quot;: {
+        &quot;enabled&quot;: true,                      # 此处enabled要设置为true
+        &quot;addr&quot;: &quot;127.0.0.1:6030&quot;,             # hbs的地址，端口是hbs的rpc端口
+        &quot;interval&quot;: 60,                       # 心跳周期，单位是秒
+        &quot;timeout&quot;: 1000                       # 连接hbs的超时时间，单位是毫秒
+    },
+    &quot;transfer&quot;: {
+        &quot;enabled&quot;: true, 
+        &quot;addrs&quot;: [
+            &quot;127.0.0.1:18433&quot;
+        ],                          # transfer的地址，端口是transfer的rpc端口, 可以支持写多个transfer的地址，agent会保证HA
+        &quot;interval&quot;: 60,             # 采集周期，单位是秒，即agent一分钟采集一次数据发给transfer
+        &quot;timeout&quot;: 1000             # 连接transfer的超时时间，单位是毫秒
+    },
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,            # 是否要监听http端口
+        &quot;listen&quot;: &quot;:1988&quot;,
+        &quot;backdoor&quot;: false
+    },
+    &quot;collector&quot;: {
+        &quot;ifacePrefix&quot;: [&quot;eth&quot;, &quot;em&quot;],  # 默认配置只会采集网卡名称前缀是eth、em的网卡流量，配置为空就会采集所有的，lo的也会采集。可以从/proc/net/dev看到各个网卡的流量信息
+        &quot;mountPoint&quot;: []
+    },
+    &quot;default_tags&quot;: {
+    },
+    &quot;ignore&quot;: {                        # 默认采集了200多个metric，可以通过ignore设置为不采集
+        &quot;cpu.busy&quot;: true,
+        &quot;df.bytes.free&quot;: true,
+        &quot;df.bytes.total&quot;: true,
+        &quot;df.bytes.used&quot;: true,
+        &quot;df.bytes.used.percent&quot;: true,
+        &quot;df.inodes.total&quot;: true,
+        &quot;df.inodes.free&quot;: true,
+        &quot;df.inodes.used&quot;: true,
+        &quot;df.inodes.used.percent&quot;: true,
+        &quot;mem.memtotal&quot;: true,
+        &quot;mem.memused&quot;: true,
+        &quot;mem.memused.percent&quot;: true,
+        &quot;mem.memfree&quot;: true,
+        &quot;mem.swaptotal&quot;: true,
+        &quot;mem.swapused&quot;: true,
+        &quot;mem.swapfree&quot;: true
+    }
+}
+复制代码
+　　3、进程管理
+
+　　　　　　./open-falcon start agent                  启动进程
+
+　　　　　　./open-falcon stop agent                  停止进程
+
+　　　　　　./open-falcon monitor agent             查看日志
+
+　　4、验证agent是否正常
+
+　　　　　　cd /home/work/agent/bin/
+
+　　　　　　./falcon-agent --check
+
+　　　　　　curl 127.0.0.1:1988/config/reload       # 重载agent配置
+
+　　5、/v1/push接口，监控脚本定制
+
+　　　　　　ts=`date +%s`; curl -X POST -d &quot;[{\&quot;metric\&quot;: \&quot;metric.demo\&quot;, \&quot;endpoint\&quot;: \&quot;qd-open-falcon-judge01.hd\&quot;, \&quot;timestamp\&quot;: $ts,\&quot;step\&quot;: 60,\&quot;value\&quot;: 9,\&quot;counterType\&quot;: \&quot;GAUGE\&quot;,\&quot;tags\&quot;: \&quot;project=falcon,module=judge\&quot;}]&quot; http://127.0.0.1:1988/v1/push
+
+1.2.2 transfer（数据上报）     返回顶部
+　　1、transfer（数据上报）
+
+　　　　　　1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。
+
+　　　　　　2. 将数据分发给judge进程和graph进程，供告警判定和绘图。
+
+　　2、服务管理
+
+　　　　　　./open-falcon start transfer                     # 启动服务
+
+　　　　　　curl -s &quot;127.0.0.1:6060/health&quot;              # 校验服务,这里假定服务开启了6060的http监听端口。检验结果为ok表明服务正常启动。
+
+　　　　　　./open-falcon stop transfer                     # 停止服务
+
+　　　　　　./open-falcon monitor transfer                # 查看日志
+
+　　3、补充说明
+
+　　　　　　部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。
+
+　　　　　　在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。
+
+　　4、配置说明
+
+
+复制代码
+{
+    &quot;debug&quot;: true,      # 如果为true，日志中会打印debug信息
+    &quot;minStep&quot;: 30,      # 允许上报的数据最小间隔，默认为30秒
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,                # 表示是否开启该http端口，该端口为控制端口，主要用来对transfer发送控制命令、统计命令、debug命令等
+        &quot;listen&quot;: &quot;0.0.0.0:6060&quot;        # 表示监听的http端口
+    },
+    &quot;rpc&quot;: {
+        &quot;enabled&quot;: true,                # 表示是否开启该jsonrpc数据接收端口, Agent发送数据使用的就是该端口
+        &quot;listen&quot;: &quot;0.0.0.0:8433&quot;        # 表示监听的http端口
+    },
+    &quot;socket&quot;: {                         # 即将被废弃,请避免使用
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;0.0.0.0:4444&quot;,
+        &quot;timeout&quot;: 3600
+    },
+    &quot;judge&quot;: { 
+        &quot;enabled&quot;: true,                # 表示是否开启向judge发送数据
+        &quot;batch&quot;: 200,                   # 数据转发的批量大小，可以加快发送速度，建议保持默认值
+        &quot;connTimeout&quot;: 1000,            # 单位是毫秒，与后端建立连接的超时时间，可以根据网络质量微调，建议保持默认
+        &quot;callTimeout&quot;: 5000,            # 单位是毫秒，发送数据给后端的超时时间，可以根据网络质量微调，建议保持默认
+        &quot;maxConns&quot;: 32,                 # 连接池相关配置，最大连接数，建议保持默认
+        &quot;maxIdle&quot;: 32,                  # 连接池相关配置，最大空闲连接数，建议保持默认
+        &quot;replicas&quot;: 500,                # 这是一致性hash算法需要的节点副本数量，建议不要变更，保持默认即可
+        &quot;cluster&quot;: {                    # key-value形式的字典，表示后端的judge列表，其中key代表后端judge名字，value代表的是具体的ip:port
+            &quot;judge-00&quot; : &quot;0.0.0.0:6080&quot;
+        }
+    },
+    &quot;graph&quot;: {
+        &quot;enabled&quot;: true,                # 表示是否开启向graph发送数据
+        &quot;batch&quot;: 200,
+        &quot;connTimeout&quot;: 1000,
+        &quot;callTimeout&quot;: 5000,
+        &quot;maxConns&quot;: 32,
+        &quot;maxIdle&quot;: 32,
+        &quot;replicas&quot;: 500,
+        &quot;cluster&quot;: {                      # key-value形式的字典，表示后端的graph列表，其中key代表后端graph名字，value代表的是具体的ip:port
+            &quot;graph-00&quot; : &quot;0.0.0.0:6070&quot;   # (多个地址用逗号隔开, transfer会将同一份数据发送至各个地址，利用这个特性可以实现数据的多重备份)
+        }
+    },
+    &quot;tsdb&quot;: {
+        &quot;enabled&quot;: false,                 # 表示是否开启向open tsdb发送数据
+        &quot;batch&quot;: 200,
+        &quot;connTimeout&quot;: 1000,
+        &quot;callTimeout&quot;: 5000,
+        &quot;maxConns&quot;: 32,
+        &quot;maxIdle&quot;: 32,
+        &quot;retry&quot;: 3,                       # 连接后端的重试次数和发送数据的重试次数
+        &quot;address&quot;: &quot;127.0.0.1:8088&quot;       # tsdb地址或者tsdb集群vip地址, 通过tcp连接tsdb.
+    }
+}
+复制代码
+1.2.3 judge（告警判断）     返回顶部
+　　1、judge（告警判断）
+
+　　　　　　1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。
+
+　　　　　　2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。
+
+　　　　　　3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。
+
+　　2、部署说明
+
+　　　　　　1. Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。
+
+　　　　　　2. 推荐的做法是一个Judge实例处理50万~100万数据，用个5G~10G内存，如果所用物理机内存比较大，比如有128G，可以在一个物理机上部署多个Judge实例。
+
+　　3、进程管理
+
+　　　　　　1. ./open-falcon start judge     # 启动
+
+　　　　　　2. ./open-falcon stop judge      # 停止
+
+　　　　　　3. ./open-falcon monitor judge         # 查看日志
+
+　　4、配置说明
+
+
+复制代码
+{
+    &quot;debug&quot;: true,
+    &quot;debugHost&quot;: &quot;nil&quot;,
+    &quot;remain&quot;: 11,
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;0.0.0.0:6081&quot;
+    },
+    &quot;rpc&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;0.0.0.0:6080&quot;
+    },
+    &quot;hbs&quot;: {
+        &quot;servers&quot;: [&quot;127.0.0.1:6030&quot;],       # hbs最好放到lvs vip后面，所以此处最好配置为vip:port
+        &quot;timeout&quot;: 300,
+        &quot;interval&quot;: 60
+    },
+    &quot;alarm&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;minInterval&quot;: 300,                  # 连续两个报警之间至少相隔的秒数，维持默认即可
+        &quot;queuePattern&quot;: &quot;event:p%v&quot;,
+        &quot;redis&quot;: {
+            &quot;dsn&quot;: &quot;127.0.0.1:6379&quot;,         # 与alarm、sender使用一个redis
+            &quot;maxIdle&quot;: 5,
+            &quot;connTimeout&quot;: 5000,
+            &quot;readTimeout&quot;: 5000,
+            &quot;writeTimeout&quot;: 5000
+        }
+    }
+}
+复制代码
+1.2.4 Alarm（告警）     返回顶部
+　　1、Alarm（告警）
+
+　　　　　　1. Alarm进程监听Redis中的消息队列，并将judge产生的告警事件转发给微信、短信和邮件三种REST接口，REST接口才是具体的发送动作。
+
+　　　　　　2. 另外，关于告警，每条告警策略都会定义不同的优先级，Redis中的消息队列也按优先级划分。
+
+　　　　　　3. Alarm不仅消费告警事件，优先级比较低的报警，其合并逻辑都是在alarm中做，所以目前Alarm进程只能部署一个实例。
+
+　　　　　　4. 已经发送出去的告警事件，Alarm将会负责写入MySQL。
+
+　　　　　　说明：
+
+　　　　　　　　1）我们在配置报警策略的时候配置了报警级别，比如P0/P1/P2等等，每个及别的报警都会对应不同的redis队列 
+
+　　　　　　　　2）alarm去读取这个数据的时候我们希望先读取P0的数据，再读取P1的数据，最后读取P5的数据，因为我们希望先处理优先级高的。
+
+　　　　　　注：alarm是个单点。对于未恢复的告警是放到alarm的内存中的，alarm还需要做报警合并，故而alarm只能部署一个实例。后期需要想办法改进。
+
+　　2、部署说明
+
+　　　　　　1. alarm是个单点，对于未恢复的告警是放到alarm的内存中的，alarm还需要做报警合并，故而alarm只能部署一个实例。需要对alarm的存活做好监控。
+
+　　3、进程管理
+
+　　　　　　./open-falcon start alarm         # 启动
+
+　　　　　　./open-falcon stop alarm           # 停止
+
+　　　　　　./open-falcon monitor alarm     # 查看日志
+
+　　4、配置说明
+
+
+复制代码
+{
+    &quot;log_level&quot;: &quot;debug&quot;,
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;0.0.0.0:9912&quot;
+    },
+    &quot;redis&quot;: {
+        &quot;addr&quot;: &quot;127.0.0.1:6379&quot;,
+        &quot;maxIdle&quot;: 5,
+        &quot;highQueues&quot;: [
+            &quot;event:p0&quot;,
+            &quot;event:p1&quot;,
+            &quot;event:p2&quot;
+        ],
+        &quot;lowQueues&quot;: [
+            &quot;event:p3&quot;,
+            &quot;event:p4&quot;,
+            &quot;event:p5&quot;,
+            &quot;event:p6&quot;
+        ],
+        &quot;userIMQueue&quot;: &quot;/queue/user/im&quot;,
+        &quot;userSmsQueue&quot;: &quot;/queue/user/sms&quot;,
+        &quot;userMailQueue&quot;: &quot;/queue/user/mail&quot;
+    },
+    &quot;api&quot;: {
+        &quot;im&quot;: &quot;http:#127.0.0.1:10086/wechat&quot;,      #微信发送网关地址
+        &quot;sms&quot;: &quot;http:#127.0.0.1:10086/sms&quot;,        #短信发送网关地址
+        &quot;mail&quot;: &quot;http:#127.0.0.1:10086/mail&quot;,      #邮件发送网关地址
+        &quot;dashboard&quot;: &quot;http:#127.0.0.1:8081&quot;,       #dashboard模块的运行地址
+        &quot;plus_api&quot;:&quot;http:#127.0.0.1:8080&quot;,         #falcon-plus api模块的运行地址
+        &quot;plus_api_token&quot;: &quot;default-token-used-in-server-side&quot;       #用于和falcon-plus api模块服务端之间的通信认证token
+    },
+    &quot;falcon_portal&quot;: {
+        &quot;addr&quot;: &quot;root:@tcp(127.0.0.1:3306)/alarms?charset=utf8&amp;loc=Asia%2FChongqing&quot;,
+        &quot;idle&quot;: 10,
+        &quot;max&quot;: 100
+    },
+    &quot;worker&quot;: {
+        &quot;im&quot;: 10,
+        &quot;sms&quot;: 10,
+        &quot;mail&quot;: 50
+    },
+    &quot;housekeeper&quot;: {
+        &quot;event_retention_days&quot;: 7,    #报警历史信息的保留天数
+        &quot;event_delete_batch&quot;: 100
+    }
+}
+复制代码
+　　5、报警合并
+
+　　　　　　1. 如果某个核心服务挂了，可能会造成大面积报警，为了减少报警短信数量，我们做了报警合并功能。
+
+　　　　　　2. 把报警信息写入dashboard模块，然后dashboard返回一个url地址给alarm，alarm将这个url链接发给用户，
+　　　　　　    这样用户只要收到一条短信（里边是个url地址），点击url进去就是多条报警内容。
+
+　　　　　　3. highQueues中配置的几个event队列中的事件是不会做报警合并的，因为那些是高优先级的报警，报警合并只是针对lowQueues中的事件。
+
+　　　　　　4. 如果所有的事件都不想做报警合并，就把所有的event队列都配置到highQueues中即可
+
+1.2.5 graph（数据存储&amp;归档）     返回顶部
+　　1、graph（数据存储&amp;归档）
+
+　　　　　　1. graph进程接收从transfer推送来的指标数据，操作rrd文件存储监控数据。
+
+　　　　　　2. graph也为API进程提供查询接口，处理query组件的查询请求、返回绘图数据。
+
+　　2、进程管理
+
+　　　　　　./open-falcon start graph            # 启动服务
+
+　　　　　　./open-falcon stop graph             # 停止服务　　　　
+
+　　　　　　./open-falcon monitor graph        # 查看日志
+
+　　　　　　注：部署完graph组件后，请修改transfer和api的配置，使这两个组件可以寻址到graph。
+
+　　3、配置说明
+
+
+复制代码
+{
+    &quot;debug&quot;: false,                  #true or false, 是否开启debug日志
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,             #true or false, 表示是否开启该http端口，该端口为控制端口，主要用来对graph发送控制命令、统计命令、debug命令
+        &quot;listen&quot;: &quot;0.0.0.0:6071&quot;     #表示监听的http端口
+    },
+    &quot;rpc&quot;: {
+        &quot;enabled&quot;: true,             #true or false, 表示是否开启该rpc端口，该端口为数据接收端口
+        &quot;listen&quot;: &quot;0.0.0.0:6070&quot;     #表示监听的rpc端口
+    },
+    &quot;rrd&quot;: {
+        &quot;storage&quot;: &quot;./data/6070&quot;     # 历史数据的文件存储路径（如有必要，请修改为合适的路）
+    },
+    &quot;db&quot;: {
+        &quot;dsn&quot;: &quot;root:@tcp(127.0.0.1:3306)/graph?loc=Local&amp;parseTime=true&quot;, #MySQL的连接信息，默认用户名是root，密码为空，host为127.0.0.1，database为graph（如有必要，请修改)
+        &quot;maxIdle&quot;: 4                 #MySQL连接池配置，连接池允许的最大连接数，保持默认即可
+    },
+    &quot;callTimeout&quot;: 5000,             #RPC调用超时时间，单位ms
+    &quot;ioWorkerNum&quot;: 64,               #底层io.Worker的数量, 注意: 这个功能是v0.2.1版本之后引入的，v0.2.1版本之前的配置文件不需要该参数
+    &quot;migrate&quot;: {                     #扩容graph时历史数据自动迁移
+        &quot;enabled&quot;: false,            #true or false, 表示graph是否处于数据迁移状态
+        &quot;concurrency&quot;: 2,            #数据迁移时的并发连接数，建议保持默认
+        &quot;replicas&quot;: 500,             #这是一致性hash算法需要的节点副本数量，建议不要变更，保持默认即可（必须和transfer的配置中保持一致）
+        &quot;cluster&quot;: {                 #未扩容前老的graph实例列表
+            &quot;graph-00&quot; : &quot;127.0.0.1:6070&quot;
+        }
+    }
+}
+复制代码
+1.2.6 API     返回顶部
+　　1、API（提供统一的restAPI操作接口） ：go的后端模块
+
+　　　　　　1. API组件，提供统一的绘图数据查询入口 （提供http接口））。
+
+　　　　　　2. API组件接收查询请求，根据一致性哈希算法去相应的graph实例查询不同metric的数据，然后汇总拿到的数据，最后统一返回给用户。
+
+　　　　　　补充说明：
+
+　　　　　　　　部署完成api组件后，请修改dashboard组件的配置、使其能够正确寻址到api组件。
+
+　　　　　　　　请确保api组件的graph列表 与 transfer的配置 一致。
+
+　　2、进程管理
+
+　　　　　　./open-falcon start api                # 启动服务
+
+　　　　　　./open-falcon stop api                # 停止服务
+
+　　　　　　./open-falcon monitor api           # 查看日志
+
+　　3、配置说明
+
+
+复制代码
+{
+    &quot;log_level&quot;: &quot;debug&quot;,
+    &quot;db&quot;: {                       //数据库相关的连接配置信息
+        &quot;faclon_portal&quot;: &quot;root:@tcp(127.0.0.1:3306)/falcon_portal?charset=utf8&amp;parseTime=True&amp;loc=Local&quot;,
+        &quot;graph&quot;: &quot;root:@tcp(127.0.0.1:3306)/graph?charset=utf8&amp;parseTime=True&amp;loc=Local&quot;,
+        &quot;uic&quot;: &quot;root:@tcp(127.0.0.1:3306)/uic?charset=utf8&amp;parseTime=True&amp;loc=Local&quot;,
+        &quot;dashboard&quot;: &quot;root:@tcp(127.0.0.1:3306)/dashboard?charset=utf8&amp;parseTime=True&amp;loc=Local&quot;,
+        &quot;alarms&quot;: &quot;root:@tcp(127.0.0.1:3306)/alarms?charset=utf8&amp;parseTime=True&amp;loc=Local&quot;,
+        &quot;db_bug&quot;: true
+    },
+    &quot;graphs&quot;: {                  // graph模块的部署列表信息
+        &quot;cluster&quot;: {
+            &quot;graph-00&quot;: &quot;127.0.0.1:6070&quot;
+        },
+        &quot;max_conns&quot;: 100,
+        &quot;max_idle&quot;: 100,
+        &quot;conn_timeout&quot;: 1000,
+        &quot;call_timeout&quot;: 5000,
+        &quot;numberOfReplicas&quot;: 500
+    },
+    &quot;metric_list_file&quot;: &quot;./api/data/metric&quot;,
+    &quot;web_port&quot;: &quot;:8080&quot;,                       // http监听端口
+    &quot;access_control&quot;: true,                    // 如果设置为false，那么任何用户都可以具备管理员权限
+    &quot;salt&quot;: &quot;pleaseinputwhichyouareusingnow&quot;,  //数据库加密密码的时候的salt
+    &quot;skip_auth&quot;: false,                        //如果设置为true，那么访问api就不需要经过认证
+    &quot;default_token&quot;: &quot;default-token-used-in-server-side&quot;,         //用于服务端各模块间的访问授权
+    &quot;gen_doc&quot;: false,
+    &quot;gen_doc_path&quot;: &quot;doc/module.html&quot;
+}
+复制代码
+1.2.7 Aggregator     返回顶部
+　　1、Aggregator
+
+　　　　　　1. 集群聚合模块，聚合某集群下的所有机器的某个指标的值，提供一种集群视角的监控体验。
+
+　　2、进程管理
+
+　　　　　　./open-falcon start aggregator                  # 启动服务
+
+　　　　　　./open-falcon monitor aggregator              # 检查log
+
+　　　　　　./open-falcon stop aggregator                 # 停止服务
+
+　　3、配置说明
+
+
+复制代码
+{
+    &quot;debug&quot;: true,
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;0.0.0.0:6055&quot;
+    },
+    &quot;database&quot;: {
+        &quot;addr&quot;: &quot;root:@tcp(127.0.0.1:3306)/falcon_portal?loc=Local&amp;parseTime=true&quot;,
+        &quot;idle&quot;: 10,
+        &quot;ids&quot;: [1, -1],
+        &quot;interval&quot;: 55
+    },
+    &quot;api&quot;: {
+        &quot;connect_timeout&quot;: 500,
+        &quot;request_timeout&quot;: 2000,
+        &quot;plus_api&quot;: &quot;http://127.0.0.1:8080&quot;,                           #falcon-plus api模块的运行地址
+        &quot;plus_api_token&quot;: &quot;default-token-used-in-server-side&quot;,         #和falcon-plus api 模块交互的认证token
+        &quot;push_api&quot;: &quot;http://127.0.0.1:1988/v1/push&quot;                    #push数据的http接口，这是agent提供的接口
+    }
+}
+复制代码
+1.2.8 Nodata     返回顶部
+　　1、Nodata
+
+　　　　　　1. nodata用于检测监控数据的上报异常。
+
+　　　　　　2. nodata和实时报警judge模块协同工作，过程为: 配置了nodata的采集项超时未上报数据，nodata生成一条默认的模拟数据；
+
+　　　　　　3. 用户配置相应的报警策略，收到mock数据就产生报警。
+
+　　　　　　4. 采集项上报异常检测，作为judge模块的一个必要补充，能够使judge的实时报警功能更加可靠、完善。
+
+　　2、进程管理
+
+　　　　　　./open-falcon start nodata              # 启动服务
+
+　　　　　　./open-falcon stop nodata             # 停止服务
+
+　　　　　　./open-falcon monitor nodata          # 检查日志
+
+　　3、配置说明
+
+
+复制代码
+{
+    &quot;debug&quot;: true,
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;0.0.0.0:6090&quot;
+    },
+    &quot;plus_api&quot;:{
+        &quot;connectTimeout&quot;: 500,
+        &quot;requestTimeout&quot;: 2000,
+        &quot;addr&quot;: &quot;http://127.0.0.1:8080&quot;,                 #falcon-plus api模块的运行地址
+        &quot;token&quot;: &quot;default-token-used-in-server-side&quot;     #用于和falcon-plus api模块的交互认证token
+    },
+    &quot;config&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;dsn&quot;: &quot;root:@tcp(127.0.0.1:3306)/falcon_portal?loc=Local&amp;parseTime=true&amp;wait_timeout=604800&quot;,
+        &quot;maxIdle&quot;: 4
+    },
+    &quot;collector&quot;:{
+        &quot;enabled&quot;: true,
+        &quot;batch&quot;: 200,
+        &quot;concurrent&quot;: 10
+    },
+    &quot;sender&quot;:{
+        &quot;enabled&quot;: true,
+        &quot;connectTimeout&quot;: 500,
+        &quot;requestTimeout&quot;: 2000,
+        &quot;transferAddr&quot;: &quot;127.0.0.1:6060&quot;,                #transfer的http监听地址,一般形如&quot;domain.transfer.service:6060&quot;
+        &quot;batch&quot;: 500
+    }
+}
+复制代码
+1.3 部署前端(dashboard)     返回顶部
+　　1、创建工作目录
+
+export FRONTSPACE=/home/front/open-falcon
+mkdir -p $FRONTSPACE
+　　2、克隆前端组件代码
+
+cd $FRONTSPACE
+git clone https://github.com/open-falcon/dashboard.git
+　　3、安装依赖包
+
+复制代码
+yum install -y python-virtualenv
+yum install -y python-devel
+yum install -y openldap-devel
+yum install -y mysql-devel
+yum groupinstall &quot;Development tools&quot; -y
+
+cd $FRONTSPACE/dashboard/
+virtualenv ./env
+
+./env/bin/pip install -r pip_requirements.txt
+复制代码
+　　4、修改配置
+
+　　　　　　注：由于前端后台搭在一台虚拟机里，且暂时不接入LDAP，且数据库root的密码为空，故先不修改配置文件。
+
+复制代码
+# dashboard的配置文件为： '/home/front/open-falcon/dashboard/rrd/config.py'，请根据实际情况修改
+
+#1、portal database
+PORTAL_DB_USER = os.environ.get(&quot;PORTAL_DB_USER&quot;,&quot;root&quot;)
+PORTAL_DB_PASS = os.environ.get(&quot;PORTAL_DB_PASS&quot;,&quot;1&quot;)
+
+#2、alarm database
+ALARM_DB_USER = os.environ.get(&quot;ALARM_DB_USER&quot;,&quot;root&quot;)
+ALARM_DB_PASS = os.environ.get(&quot;ALARM_DB_PASS&quot;,&quot;1&quot;)
+复制代码
+　　5、启动服务
+
+　　　　浏览器打开： http://192.168.56.12:8081
+
+　　　　1）开发者模式启动
+
+　　　　　　　　cd $FRONTSPACE/dashboard/
+
+　　　　　　　　./env/bin/python wsgi.py
+
+　　　　2）在生产环境启动
+
+　　　　　　　　bash control start            # 在生产环境启动
+
+　　　　　　　　bash control stop　        # 停止dashboard运行
+
+　　　　　　　　bash control tail             # 查看日志
+
+1.4 被监控主机安装open-falcon agent     返回顶部
+　　  参考博客： https://blog.csdn.net/qq_27384769/article/details/79569776 
+
+　　1、在被监控服务器中创建工作目录
+
+复制代码
+# 1、在被监控服务器中创建工作目录
+mkdir -p /home/work/
+
+# 2、将server端agent文件夹和启动脚本 拷贝到被监控服务器上
+scp -r /home/work/agent/ root@192.168.56.13:/home/work/                 # 拷贝agent目录
+scp -r /home/work/open-falcon root@192.168.56.13:/home/work/            # 拷贝启动脚本
+
+# 3、修改配置文件
+vim /home/work/agent/config/cfg.json
+复制代码
+
+复制代码
+{
+    &quot;debug&quot;: true,
+    &quot;hostname&quot;: &quot;&quot;,
+    &quot;ip&quot;: &quot;&quot;,
+    &quot;plugin&quot;: {
+        &quot;enabled&quot;: false,
+        &quot;dir&quot;: &quot;./plugin&quot;,
+        &quot;git&quot;: &quot;https://github.com/open-falcon/plugin.git&quot;,
+        &quot;logs&quot;: &quot;./logs&quot;
+    },
+    &quot;heartbeat&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;addr&quot;: &quot;192.168.56.12:6030&quot;,
+        &quot;interval&quot;: 60,
+        &quot;timeout&quot;: 1000
+    },
+    &quot;transfer&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;addrs&quot;: [
+            &quot;192.168.56.12:8433&quot;
+        ],
+        &quot;interval&quot;: 60,
+        &quot;timeout&quot;: 1000
+    },
+    &quot;http&quot;: {
+        &quot;enabled&quot;: true,
+        &quot;listen&quot;: &quot;:1988&quot;,
+        &quot;backdoor&quot;: false
+    },
+    &quot;collector&quot;: {
+        &quot;ifacePrefix&quot;: [&quot;eth&quot;, &quot;em&quot;],
+        &quot;mountPoint&quot;: []
+    },
+    &quot;default_tags&quot;: {
+    },
+    &quot;ignore&quot;: {
+        &quot;cpu.busy&quot;: true,
+        &quot;df.bytes.free&quot;: true,
+        &quot;df.bytes.total&quot;: true,
+        &quot;df.bytes.used&quot;: true,
+        &quot;df.bytes.used.percent&quot;: true,
+        &quot;df.inodes.total&quot;: true,
+        &quot;df.inodes.free&quot;: true,
+        &quot;df.inodes.used&quot;: true,
+        &quot;df.inodes.used.percent&quot;: true,
+        &quot;mem.memtotal&quot;: true,
+        &quot;mem.memused&quot;: true,
+        &quot;mem.memused.percent&quot;: true,
+        &quot;mem.memfree&quot;: true,
+        &quot;mem.swaptotal&quot;: true,
+        &quot;mem.swapused&quot;: true,
+        &quot;mem.swapfree&quot;: true
+    }
+}
+复制代码
+　　2、agent进程管理
+
+　　　　　　./open-falcon start agent                  启动进程
+
+　　　　　　./open-falcon stop agent                  停止进程
+
+　　　　　　./open-falcon monitor agent             查看日志
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>open-falcon入门篇</title>
+			<link>/posts/a12/</link>
+			<pubDate>Tue, 19 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a12/</guid>
+			<description>open-falcon入门篇  openfalcon官网： https://book.open-falcon.org/zh/ 1、openfalcon特点 1. 数据采集免配置： 无需预定义agent自动发现、支持plugin、支持主动push 2. 容量水平扩展： 生产环境每秒20多万此数据收集、告警、存储、绘图 3. 告警策略易于管理： 支持策略模板、模板继承和覆盖、报警接收人为用户组 4. 报警事件自动化处理： 触发阀值之后支持callback，便于嵌入自动化逻辑 5. 人性化告警设置： 支持最大告警次数、告警级别、告警恢复通知、告警暂停、不同时段不同阀值、支持维护周期、支持报警合并 6. 历史数据高效查询： 秒级返回上百个指标一年的历史数据 7. 架构设计高可用： 整个系统同核心单点、易运维、易部署 2、openfalcon与zabbix比优点 1. 模板支持继承的同时支持覆盖策略项 2. 数据采集免配置，节省人力成本 3. 较为强大的数据模型 4. tag化描述告警策略each(metric=qps project=falcon module=jedge)&amp;gt;100 5. 水平扩展，多IDC支持 1.2 open-falcon架构 返回顶部 part01：数据采集&amp;amp;上报 1、agent（数据采集组件）：golang项目 1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标 2. agent提供了一个http接口/v1/push用于接收用户手工push的一些数据，然后通过长连接迅速转发给Transfer。 3. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。 2、 transfer（数据上报） 1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。 2. 将数据分发给judge进程和graph进程，供告警判定和绘图。 部署说明： 部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。 在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。 part02: 告警 3、judge（告警判断） 1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。 2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。 3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。 部署说明： Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。 推荐一个Judge实例处理50万~100万数据，用个5G~10G内存的服务器。 4、Alarm（告警） https://book.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="open-falcon入门篇">open-falcon入门篇</h1>
+
+<pre><code> openfalcon官网： https://book.open-falcon.org/zh/
+
+ 　　1、openfalcon特点
+
+　　　　　　1. 数据采集免配置： 无需预定义agent自动发现、支持plugin、支持主动push
+
+　　　　　　2. 容量水平扩展： 生产环境每秒20多万此数据收集、告警、存储、绘图
+
+　　　　　　3. 告警策略易于管理： 支持策略模板、模板继承和覆盖、报警接收人为用户组
+
+　　　　　　4. 报警事件自动化处理： 触发阀值之后支持callback，便于嵌入自动化逻辑
+
+　　　　　　5. 人性化告警设置： 支持最大告警次数、告警级别、告警恢复通知、告警暂停、不同时段不同阀值、支持维护周期、支持报警合并
+
+　　　　　　6. 历史数据高效查询： 秒级返回上百个指标一年的历史数据
+
+　　　　　　7. 架构设计高可用： 整个系统同核心单点、易运维、易部署
+
+　　2、openfalcon与zabbix比优点
+
+　　　　　　1. 模板支持继承的同时支持覆盖策略项
+
+　　　　　　2. 数据采集免配置，节省人力成本
+
+　　　　　　3. 较为强大的数据模型
+
+　　　　　　4. tag化描述告警策略each(metric=qps project=falcon module=jedge)&gt;100
+
+　　　　　　5. 水平扩展，多IDC支持
+
+1.2 open-falcon架构     返回顶部
+            
+
+　　part01：数据采集&amp;上报
+
+　　1、agent（数据采集组件）：golang项目
+
+　　　　　　1. 需要监控的服务器都要安装falcon-agent，falcon-agent是一个golang开发的daemon程序，用于自发现的采集单机的各种数据和指标
+
+　　　　　　2. agent提供了一个http接口/v1/push用于接收用户手工push的一些数据，然后通过长连接迅速转发给Transfer。
+
+　　　　　　3. 部署好agent后，能自动获取到系统的基础监控指标，并上报给transfer，agent与transfer建立了TCP长连接，每隔60秒发送一次数据到transfer。
+
+　　2、 transfer（数据上报）
+
+　　　　　　1. transfer进程负责分发从agent上送的监控指标数据，并根据哈希分片。
+
+　　　　　　2. 将数据分发给judge进程和graph进程，供告警判定和绘图。
+
+　　　　　　部署说明：
+
+　　　　　　　　部署完成transfer组件后，请修改agent的配置，使其指向正确的transfer地址。
+
+　　　　　　　　在安装完graph和judge后，请修改transfer的相应配置、使其能够正确寻址到这两个组件。
+
+　　part02: 告警
+
+　　3、judge（告警判断）
+
+　　　　　　1.Judge从Heartbeat server获取所有的报警策略，并判断transfer推送的指标数据是否触发告警。
+
+　　　　　　2. 若触发了告警，judge将会产生告警事件，这些告警事件会写入Redis（使用Redis消息队列）。
+
+　　　　　　3. redis中告警事件，供处理告警事件的Alarm进程转发告警消息，或是Email，或是手机短信等。
+
+　　　　　　部署说明：
+
+　　　　　　　　Judge监听了一个http端口，提供了一个http接口：/count，访问之，可以得悉当前Judge实例处理了多少数据量。
+
+　　　　　　　　推荐一个Judge实例处理50万~100万数据，用个5G~10G内存的服务器。
+
+　　4、Alarm（告警）
+
+　　　　　　https://book.open-falcon.org/zh_0_2/distributed_install/alarm.html
+
+　　　　　　1. Alarm进程监听Redis中的消息队列，并将judge产生的告警事件转发给微信、短信和邮件三种REST接口，REST接口才是具体的发送动作。
+
+　　　　　　2. 另外，关于告警，每条告警策略都会定义不同的优先级，Redis中的消息队列也按优先级划分。
+
+　　　　　　3. Alarm不仅消费告警事件，优先级比较低的报警，其合并逻辑都是在alarm中做，所以目前Alarm进程只能部署一个实例。
+
+　　　　　　4. 已经发送出去的告警事件，Alarm将会负责写入MySQL。
+
+　　　　　　说明：
+
+　　　　　　　　1）我们在配置报警策略的时候配置了报警级别，比如P0/P1/P2等等，每个及别的报警都会对应不同的redis队列 
+
+　　　　　　　　2）alarm去读取这个数据的时候我们希望先读取P0的数据，再读取P1的数据，最后读取P5的数据，因为我们希望先处理优先级高的。
+
+　　　　　　　　3）已经发送的告警信息，alarm会写入MySQL中保存，这样用户就可以在dashboard中查阅历史报警。
+
+　　　　　　　　4）针对同一个策略发出的多条报警，在MySQL存储的时候，会聚类；历史报警保存的周期，是可配置的，默认为7天。
+
+　　　　　　注：alarm是个单点。对于未恢复的告警是放到alarm的内存中的，alarm还需要做报警合并，故而alarm只能部署一个实例。后期需要想办法改进。
+
+　　part03：归档&amp;绘图
+
+　　5、graph（数据存储&amp;归档）
+
+　　　　　　1. graph进程接收从transfer推送来的指标数据，操作rrd文件存储监控数据。
+
+　　　　　　2. graph也为API进程提供查询接口，处理query组件的查询请求、返回绘图数据。
+
+　　6、API（提供统一的restAPI操作接口） ：go的后端模块
+
+　　　　　　1. API组件，提供统一的绘图数据查询入口 （提供http接口））。
+
+　　　　　　2. API组件接收查询请求，根据一致性哈希算法去相应的graph实例查询不同metric的数据，然后汇总拿到的数据，最后统一返回给用户。
+
+　　　　　　补充说明：
+
+　　　　　　　　部署完成api组件后，请修改dashboard组件的配置、使其能够正确寻址到api组件。
+
+　　　　　　　　请确保api组件的graph列表 与 transfer的配置 一致。
+
+　　8、dashboard（趋势图web界面）：python的web项目
+
+　　　　　　1. dashboard是面向用户的查询界面，在这里，用户可以看到push到graph中的所有数据，并查看其趋势图。
+
+　　　　　　2. dashboard模块配置 报警策略，并把策略同步给：aggregator、nodata、grafana。
+
+　　9、Aggregator
+
+　　　　　　1. 集群聚合模块，聚合某集群下的所有机器的某个指标的值，提供一种集群视角的监控体验。
+
+　　10、Nodata
+
+　　　　　　1. nodata用于检测监控数据的上报异常。
+
+　　　　　　2. nodata和实时报警judge模块协同工作，过程为: 配置了nodata的采集项超时未上报数据，nodata生成一条默认的模拟数据；
+
+　　　　　　3. 用户配置相应的报警策略，收到mock数据就产生报警。
+
+　　　　　　4. 采集项上报异常检测，作为judge模块的一个必要补充，能够使judge的实时报警功能更加可靠、完善。
+
+　　11、grafana（生成更详细图形）
+
+ 
+
+　　part04：报警策略配置
+
+　　12、web portal（报警策略配置）：最新open-falcon中此模块功能合并到Dashboard模块中
+
+　　　　　　1. web portal是python写的django项目，用户可以在这里配置报警策略，存入mysql
+
+　　　　　　2. Portal的数据库中有一个host表，维护了公司所有机器的信息，比如hostname、ip等等。
+
+　　　　　　3. HBS会将agent发送心跳信息给HBS的时候的hostname、ip等信息告诉HBS，HBS负责更新host表。
+
+　　13、hbs：Heartbeat server（心跳服务）
+
+　　　　　　1. 功能1： agent发送心跳信息给HBS的时，会把hostname、ip、agent version、plugin version等信息告诉HBS，HBS负责更新web portal 的host表。
+
+　　　　　　2. 功能2： hbs会从从dashboard模块中获取 报警策略配置 并缓存到本地，所有Judge从hbs中获取报警策略
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>saltstack-api使用详解</title>
+			<link>/posts/a11/</link>
+			<pubDate>Mon, 18 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a11/</guid>
+			<description>saltstack-api使用详解  参考博客：https://www.jianshu.com/p/012ccdff93cc 1、介绍 1. saltsatck本身就提供了一套算完整的api，使用 CherryPy 来实现 restful 的 api，供外部的程序调用。 2. salt-api需要安装，然后进行一些配置才可以正常使用 2、安装salt-api，并设置开机启动 yum -y install salt-api pyOpenSSL systemctl enable salt-api 3、配置自签名证书 cd /etc/pki/tls/certs/ make testcert 复制代码 Enter pass phrase: ===&amp;gt; 输入加密短语，这里我使用salt2017 Verifying - Enter pass phrase: ===&amp;gt; 确认加密短语 umask 77 ; \ /usr/bin/openssl req -utf8 -new -key /etc/pki/tls/private/localhost.key -x509 -days 365 -out /etc/pki/tls/certs/localhost.crt -set_serial 0 Enter pass phrase for /etc/pki/tls/private/localhost.key: ===&amp;gt; 再次输入相同的加密短语 You are about to be asked to enter information that will be incorporated into your certificate request.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="saltstack-api使用详解">saltstack-api使用详解</h1>
+
+<pre><code>  参考博客：https://www.jianshu.com/p/012ccdff93cc
+
+　　1、介绍
+
+　　　　　　1. saltsatck本身就提供了一套算完整的api，使用 CherryPy 来实现 restful 的 api，供外部的程序调用。
+
+　　　　　　2. salt-api需要安装，然后进行一些配置才可以正常使用
+
+　　2、安装salt-api，并设置开机启动
+
+　　　　　　yum -y install salt-api pyOpenSSL
+
+　　　　　　systemctl enable salt-api
+
+　　3、配置自签名证书
+
+　　　　　　cd /etc/pki/tls/certs/
+
+　　　　　　make testcert
+
+
+复制代码
+Enter pass phrase:    ===&gt;  输入加密短语，这里我使用salt2017
+Verifying - Enter pass phrase:    ===&gt;  确认加密短语
+umask 77 ; \
+/usr/bin/openssl req -utf8 -new -key /etc/pki/tls/private/localhost.key -x509 -days 365 -out /etc/pki/tls/certs/localhost.crt -set_serial 0
+Enter pass phrase for /etc/pki/tls/private/localhost.key:    ===&gt;  再次输入相同的加密短语
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:BeiJing
+Locality Name (eg, city) [Default City]:BeiJing
+Organization Name (eg, company) [Default Company Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (eg, your name or your server's hostname) []:
+Email Address []:
+复制代码
+　　4、解密key文件，生成无密码的key文件
+
+　　　　　　注：过程中需要输入key密码，该密码为之前生成证书时设置的密码
+
+　　　　　　cd /etc/pki/tls/private/
+
+　　　　　　openssl rsa -in localhost.key -out localhost_nopass.key
+
+　　5、修改文件权限
+
+　　　　　　chmod 755 /etc/pki/tls/certs/localhost.crt 
+　　　　　　chmod 755 /etc/pki/tls/private/localhost.key 
+　　　　　　chmod 755 /etc/pki/tls/private/localhost_nopass.key
+
+　　6、添加用户
+
+ 　　　　　　注：生产环境请使用密码复杂度高的密码，这里我使用 chnsys@2016
+
+　　　　　　useradd -M -s /sbin/nologin saltapi          # 创建用户 saltapi
+
+　　　　　　passwd saltapi                                    # 为用户saltapi设置密码
+
+　　7、配置salt-api
+
+　　　　　　sed -i '/#default_include/s/#default/default/g' /etc/salt/master
+
+　　8、创建/etc/salt/master.d/目录　　　　
+
+　　　　　　mkdir -p /etc/salt/master.d/
+　　　　　　cd /etc/salt/master.d/
+　　　　　　touch eauth.conf
+　　　　　　touch api.conf
+
+
+external_auth:
+  pam:
+    saltapi:   # 用户
+      - .*     # 该配置文件给予saltapi用户所有模块使用权限，出于安全考虑一般只给予特定模块使用权限
+
+rest_cherrypy:
+  port: 8001
+  ssl_crt: /etc/pki/tls/certs/localhost.crt
+  ssl_key: /etc/pki/tls/private/localhost_nopass.key
+　　9、启动salt-api
+
+　　　　　　systemctl restart salt-master
+　　　　　　systemctl start salt-api
+　　　　　　ps -ef|grep salt-api
+　　　　　　netstat -lnput|grep 8001
+
+　　10、测试获取token
+
+　　　　　　curl -k https://192.168.56.11:8001/login -H &quot;Accept: application/x-yaml&quot;  -d username='saltapi'  -d password='chnsys@2016'  -d eauth='pam'
+
+　　11、调用test.ping
+
+　　　　　　curl -k https://192.168.56.11:8001/ -H &quot;Accept: application/x-yaml&quot; -H &quot;X-Auth-Token: 87cbb68e0babf3d0ad6b3741795667dbe62b3c11&quot; -d client='local' -d tgt='*' -d fun='test.ping'
+
+ 1.2 编写python脚本请求salt api接口
+　　1、使用python简单测试接口执行命令
+
+
+复制代码
+#!/usr/bin/env python
+# _*_ coding:utf-8 _*_
+__author__ = 'junxi'
+
+
+import requests
+import json
+try:
+    import cookielib
+except:
+    import http.cookiejar as cookielib
+
+# 使用urllib2请求https出错，做的设置
+import ssl
+context = ssl._create_unverified_context()
+
+# 使用requests请求https出现警告，做的设置
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+
+salt_api = &quot;https://192.168.56.11:8001/&quot;
+
+
+class SaltApi:
+    &quot;&quot;&quot;
+    定义salt api接口的类
+    初始化获得token
+    &quot;&quot;&quot;
+    def __init__(self, url):
+        self.url = url
+        self.username = &quot;saltapi&quot;
+        self.password = &quot;chnsys@2016&quot;
+        self.headers = {
+            &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36&quot;,
+            &quot;Content-type&quot;: &quot;application/json&quot;
+        }
+        self.params = {'client': 'local', 'fun': '', 'tgt': ''}
+        self.login_url = salt_api + &quot;login&quot;
+        self.login_params = {'username': self.username, 'password': self.password, 'eauth': 'pam'}
+        self.token = self.get_data(self.login_url, self.login_params)['token']
+        self.headers['X-Auth-Token'] = self.token
+
+    def get_data(self, url, params):
+        send_data = json.dumps(params)
+        request = requests.post(url, data=send_data, headers=self.headers, verify=False)
+        response = request.json()
+        result = dict(response)
+        return result['return'][0]
+
+    def salt_command(self, tgt, method, arg=None):
+        &quot;&quot;&quot;远程执行命令，相当于salt 'client1' cmd.run 'free -m'&quot;&quot;&quot;
+        if arg:
+            params = {'client': 'local', 'fun': method, 'tgt': tgt, 'arg': arg}
+        else:
+            params = {'client': 'local', 'fun': method, 'tgt': tgt}
+        print '命令参数: ', params
+        result = self.get_data(self.url, params)
+        return result
+
+def main():
+    salt = SaltApi(salt_api)
+    salt_client = '*'
+    salt_test = 'test.ping'
+    result1 = salt.salt_command(salt_client, salt_test)
+    print result1
+    # 返回结果：{u'linux-node1.example.com': True, u'linux-node2.example.com': True}
+
+if __name__ == '__main__':
+    main()
+复制代码
+　　2、使用requests模块获取基本信息
+
+
+复制代码
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+import requests
+import json
+import logging
+logging.captureWarnings(True)  # 屏蔽由于访问https时没有证书警告问题
+
+SALT_BASE_URL = 'https://192.168.56.11:8001/'
+SALT_USER = 'saltapi'
+SALT_PWD = 'chnsys@2016'
+
+
+class SaltAPI(object):
+    __token_id = ''
+
+    def __init__(self):
+        self.__url = SALT_BASE_URL
+        self.__user = SALT_USER
+        self.__password = SALT_PWD
+
+    def token_id(self):
+        &quot;&quot;&quot;
+            用户登陆和获取token
+        :return:
+        &quot;&quot;&quot;
+        params = {'eauth': 'pam', 'username': self.__user, 'password': self.__password}
+        content = self.postRequest(self.__url + '/login', data=params)
+        try:
+            self.__token_id = content[0]['token']
+        except Exception as e:
+            print '**** Failed to get token, {} ****'.format(str(e))
+
+    def postRequest(self, url, data=None):
+        headers = {&quot;X-Auth-Token&quot;: self.__token_id}
+        ret = requests.post(url=url, data=data, json='json', headers=headers, verify=False)
+        if ret.status_code == 200:
+            return ret.json()['return']
+        return ret.text
+
+    def remote_execution_module(self, tgt, fun, arg):
+        &quot;&quot;&quot;
+            远程执行模块，有参数
+        :param tgt: minion list
+        :param fun: 模块
+        :param arg: 参数
+        :return: dict, {'minion1': 'ret', 'minion2': 'ret'}
+        &quot;&quot;&quot;
+        params = {'client': 'local', 'tgt': tgt, 'fun': fun, 'arg': arg}
+        self.token_id()
+        return self.postRequest(self.__url, params)
+
+    def salt_alive(self, tgt):
+        '''
+        salt主机存活检测
+        '''
+        params = {'client': 'local', 'tgt': tgt, 'fun': 'test.ping'}
+        self.token_id()
+        return self.postRequest(self.__url, params)
+
+
+if __name__ == '__main__':
+    salt = SaltAPI()
+    minions_list = [
+        'cloud:type',
+        'cluster:domain',
+        'cluster:name',
+        'cpu_model',
+        'fqdn_ip4',
+        'hospital:type',
+        'kernelrelease',
+        'nodename',
+        'os',
+        'osmajorrelease',
+        'osrelease',
+        'saltversion',
+        'serialnumber',
+        'virtual',
+        'num_cpus',
+        'mem_total',
+        'cloud:region',
+        'ipv4',
+    ]
+    ret = salt.remote_execution_module('*', 'grains.item', minions_list)
+    print json.dumps(ret, ensure_ascii=False)
+
+
+'''
+[{
+    &quot;linux-node1.example.com&quot;: {
+        &quot;osrelease&quot;: &quot;7.6.1810&quot;,
+        &quot;fqdn_ip4&quot;: [&quot;192.168.56.11&quot;],
+        &quot;serialnumber&quot;: &quot;VMware-56 4d 26 83 60 7c bb 5a-14 17 6a ab c2 45 f2 7a&quot;,
+        &quot;nodename&quot;: &quot;linux-node1.example.com&quot;,
+        &quot;kernelrelease&quot;: &quot;3.10.0-957.1.3.el7.x86_64&quot;,
+        &quot;cloud:type&quot;: &quot;&quot;,
+        &quot;num_cpus&quot;: 1,
+        &quot;saltversion&quot;: &quot;2018.3.3&quot;,
+        &quot;cpu_model&quot;: &quot;Intel(R) Core(TM) i7-7500U CPU @ 2.70GHz&quot;,
+        &quot;virtual&quot;: &quot;VMware&quot;,
+        &quot;cluster:domain&quot;: &quot;&quot;,
+        &quot;cluster:name&quot;: &quot;&quot;,
+        &quot;osmajorrelease&quot;: 7,
+        &quot;hospital:type&quot;: &quot;&quot;,
+        &quot;cloud:region&quot;: &quot;&quot;,
+        &quot;os&quot;: &quot;CentOS&quot;,
+        &quot;ipv4&quot;: [&quot;127.0.0.1&quot;, &quot;192.168.56.11&quot;],
+        &quot;mem_total&quot;: 1819
+    },
+    &quot;linux-node2.example.com&quot;: {
+        &quot;osrelease&quot;: &quot;7.6.1810&quot;,
+        &quot;fqdn_ip4&quot;: [&quot;192.168.56.12&quot;],
+        &quot;serialnumber&quot;: &quot;VMware-56 4d 09 af 9d 33 70 99-e9 7b 6d b2 5a 3b 7f 22&quot;,
+        &quot;nodename&quot;: &quot;linux-node2.example.com&quot;,
+        &quot;kernelrelease&quot;: &quot;3.10.0-957.1.3.el7.x86_64&quot;,
+        &quot;cloud:type&quot;: &quot;&quot;,
+        &quot;num_cpus&quot;: 1,
+        &quot;saltversion&quot;: &quot;2018.3.3&quot;,
+        &quot;cpu_model&quot;: &quot;Intel(R) Core(TM) i7-7500U CPU @ 2.70GHz&quot;,
+        &quot;virtual&quot;: &quot;VMware&quot;,
+        &quot;cluster:domain&quot;: &quot;&quot;,
+        &quot;cluster:name&quot;: &quot;&quot;,
+        &quot;osmajorrelease&quot;: 7,
+        &quot;hospital:type&quot;: &quot;&quot;,
+        &quot;cloud:region&quot;: &quot;&quot;,
+        &quot;os&quot;: &quot;CentOS&quot;,
+        &quot;ipv4&quot;: [&quot;127.0.0.1&quot;, &quot;192.168.56.12&quot;],
+        &quot;mem_total&quot;: 1819
+    }
+}]
+'''
+复制代码
+　　3、解决访问无证书https报错：requests.exceptions.SSLError: HTTPSConnectionPool
+
+ 　　　　　　参考博客：https://blog.csdn.net/qq_31077649/article/details/79013199
+
+　　　　　　1）安装相关模块：
+
+　　　　　　　　　　pip install cryptography
+　　　　　　　　　　pip install pyOpenSSL
+　　　　　　　　　　pip install certifi
+
+ 　　　　　　2）关闭证书验证（verify=False）
+
+ 　　　　　　　　　　ret = requests.post(url=url, data=data, json='json', headers=headers, verify=False)
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>saltstack 基本使用</title>
+			<link>/posts/a10/</link>
+			<pubDate>Sun, 17 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a10/</guid>
+			<description>saltstack 基本使用 https://www.cnblogs.com/xiaonq/p/10233439.html</description>
+			<content type="html"><![CDATA[
+
+<h1 id="saltstack-基本使用">saltstack 基本使用</h1>
+
+<p><a href="https://www.cnblogs.com/xiaonq/p/10233439.html">https://www.cnblogs.com/xiaonq/p/10233439.html</a></p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>zabbix-agent安装配置 及 web界面管理</title>
+			<link>/posts/a9/</link>
+			<pubDate>Sun, 17 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a9/</guid>
+			<description>zabbix-agent安装配置 及 web界面管理 1、安装zabbix-agent
+　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix
+　2. 找到清华大学镜像源找到对应版本的agent：https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/
+　3. 安装：rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm
+　2、修改agent配置文件
+复制代码 vim /etc/zabbix/zabbix_agentd.conf Server=1.1.1.5
+开启zabbix-agent： systemctl start zabbix-agent 查看agent状态：systemctl status zabbix-agent
+查看agent是否监听端口：netstat -lntp 查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log 复制代码 3、自定义key（查看当前登录终端个数）
+　1. linux中查看当前终端登录用户个数
+复制代码 [root@redis ~]# w 16:28:25 up 42 min, 2 users, load average: 0.00, 0.03, 0.05 USER TTY FROM LOGIN@ IDLE JCPU PCPU WHAT root pts/0 1.1.1.100 15:47 1.00s 0.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="zabbix-agent安装配置-及-web界面管理">zabbix-agent安装配置 及 web界面管理</h1>
+
+<p>1、安装zabbix-agent</p>
+
+<p>　　　　　　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix</p>
+
+<p>　　　　　　2. 找到清华大学镜像源找到对应版本的agent：<a href="https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/">https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/</a></p>
+
+<p>　　　　　　3. 安装：rpm -ivh <a href="https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm">https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm</a></p>
+
+<p>　　2、修改agent配置文件</p>
+
+<p>复制代码
+vim /etc/zabbix/zabbix_agentd.conf
+Server=1.1.1.5</p>
+
+<p>开启zabbix-agent： systemctl start zabbix-agent
+查看agent状态：systemctl status zabbix-agent<br />
+查看agent是否监听端口：netstat -lntp
+查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log
+复制代码
+　　3、自定义key（查看当前登录终端个数）</p>
+
+<p>　　　　1. linux中查看当前终端登录用户个数</p>
+
+<p>复制代码
+[root@redis ~]# w
+ 16:28:25 up 42 min,  2 users,  load average: 0.00, 0.03, 0.05
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0    1.1.1.100        15:47    1.00s  0.24s  0.00s w</p>
+
+<p>[root@redis ~]# w|awk &lsquo;NR==1{print $6}&rsquo;                  # 获取当前登录用户数量（法1）
+2
+  [root@redis ~]# w|awk -F &lsquo;,&rsquo; &lsquo;NR==1{print $2}&rsquo;|awk &lsquo;NR==1{print $1}&rsquo;    # 获取当前登录用户数量（法2）</p>
+
+<p>2</p>
+
+<p>复制代码
+　　　　2. 查看w命令绝对路径</p>
+
+<p>[root@redis ~]# which w
+/usr/bin/w
+　　　　3. 修改zabbix-agent配置文件 zabbix_agentd.conf  添加key</p>
+
+<p>vim /etc/zabbix/zabbix_agentd.conf                           # 添加下面这条
+UserParameter=log_user, /usr/bin/w|awk &lsquo;NR==1{print $6}&rsquo;</p>
+
+<p>systemctl restart zabbix-agent                               # 重启agent
+　　　　4. 在server上get上面配置key的值</p>
+
+<p>yum -y install zabbix-get                   # 在server安装zabbix-get工具
+zabbix_get -s 1.1.1.3 -p10050 -k log_user   # 在server端运行命令测试是否可以获取到
+　　　　5. 在server端可以获取到key值后即可 新建 &ldquo;监控项&rdquo; 使用key了　　</p>
+
+<p>　　　　　　</p>
+
+<p>1.2 根据host创建 应用集、监控项、触发器(块速开始)     返回顶部
+　　登录地址：　<a href="http://1.1.1.5/zabbix/zabbix.php?action=dashboard.view">http://1.1.1.5/zabbix/zabbix.php?action=dashboard.view</a></p>
+
+<p>　　1、登陆和配置用户</p>
+
+<p>　　　　　　管理（Administration） → 用户（Users） → 创建用户</p>
+
+<p>　　2、 新建主机</p>
+
+<p>　　　　　　</p>
+
+<p>　　3、新建应用集</p>
+
+<p>　　　　　　</p>
+
+<p>　　4、新建监控项</p>
+
+<p>　　　　　　说明：监控项是Zabbix中获得数据的基础。没有监控项，就没有数据——因为一个主机中只有监控项定义了单一的指标或者需要获得的数据。　　　</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　名称（Name）：在列表中和其他地方，都会显示这个值作为监控项名称。</p>
+
+<p>　　　　　　值（Key）：这是监控项的一个技术上的名称，用于识别获取信息的类型。这个特定值需要是Zabbix Agent预定义值重的一种。</p>
+
+<p>　　　　　　信息类型（Type of information）：这个属性定义了想获得数据的格式</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　</p>
+
+<p>　　5、新建触发器</p>
+
+<p>　　　　1. 触发器定义</p>
+
+<p>　　　　　　1. 监控项只是用于收集数据。如果需要自动评估收到的数据，我们则需要定义触发器。
+　　　　　　2. 触发器包含了一个表达式，这个表达式定义了数据的可接受的阈值级别
+　　　　　　3.如果收到的数据超过了这个定义好的级别，触发器将被“触发”，让我们知道有问题发生。
+　　　　　　4. 如果数据再次恢复到合理的范围，触发器将会到“正常（Ok）”状态。</p>
+
+<p>　　　　2. 添加触发器</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　</p>
+
+<p>1.3 根据模板创建 应用集、监控项、触发器     返回顶部
+　　1、模板作用 　</p>
+
+<p>　　　　　　1. 我们在之前的章节中学会了如何配置监控项、触发器，以及如果从主机上获得问题的通知。
+　　　　　　2. 虽然这些步骤提供了很大的灵活性，但仍然需要很多步骤才能完成。如果我们需要配置上千台主机，一些自动化操作会带来更多便利性。
+　　　　　　3. 模版（templates）功能可以实现这一点。模版允许对有用的监控项、触发器和其他对象进行分组，只需要一步就可以对监控主机应用模版，以达到反复重用的目的。
+　　　　　　4. 当一个模版链接到一个主机后，主机会继承这个模版中的所有对象。简单而言，一组预先定义好的检查会被快速应用到主机上。</p>
+
+<p>　　2、创建模板</p>
+
+<p>　　　　　　配置（Configuration） → 模版（Templates）中，点击创建模版（Create template）</p>
+
+<p>　　　　　　</p>
+
+<p>　　3、将主机中已有 &ldquo;监控项&rdquo; 复制到新建的模板中</p>
+
+<p>　　　　　　1. 前往&rsquo;New host&rsquo;的监控项列表。在配置（Configuration） → 主机（Hosts），点击‘New host’旁边的监控项（Items）。</p>
+
+<p>　　　　　　2. 勾选要复制的监控项，下面会出现一个复制按钮，点击复制按钮，就可以到一个新页面，选择要关联的模板即可</p>
+
+<p>　　4、在新建的模板中 新建一个 &ldquo;应用集&rdquo;</p>
+
+<p>　　　　　　配置 &mdash;&ndash;&gt; 模板 &mdash;&ndash;&gt; &ldquo;找到要处理的模板&rdquo;并点击 &mdash;&ndash;&gt; 应用集 &mdash;&ndash;&gt; 创建应用集（填一个应用集名称即可）</p>
+
+<p>　　5、创建监控项</p>
+
+<p>　　　　　　配置 &mdash;&ndash;&gt; 模板 &mdash;&ndash;&gt; &ldquo;找到要处理的模板&rdquo;并点击 &mdash;&ndash;&gt; 监控项 &mdash;&ndash;&gt; 创建监控项（参考上面监控项创建方法）</p>
+
+<p>　　6、创建触发器</p>
+
+<p>　　　　　　配置 &mdash;&ndash;&gt; 模板 &mdash;&ndash;&gt; &ldquo;找到要处理的模板&rdquo;并点击 &mdash;&ndash;&gt; 触发器 &mdash;&ndash;&gt; 创建触发器（参考上面触发器创建方法）</p>
+
+<p>　　7、链接模版到主机</p>
+
+<p>　　　　　　</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>聚类的分类</title>
+			<link>/posts/j7/</link>
+			<pubDate>Sun, 17 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j7/</guid>
+			<description>聚类的分类  K-Means(K均值)聚类 算法步骤： (1) 首先我们选择一些类/组，并随机初始化它们各自的中心点。中心点是与每个数据点向量长度相同的位置。这需要我们提前预知类的数量(即中心点的数量)。 (2) 计算每个数据点到中心点的距离，数据点距离哪个中心点最近就划分到哪一类中。 (3) 计算每一类中中心点作为新的中心点。 (4) 重复以上步骤，直到每一类中心在每次迭代后变化不大为止。也可以多次随机初始化中心点，然后选择运行结果最好的一个。 下图演示了K-Means进行分类的过程：  优点： 速度快，计算简便 缺点： 我们必须提前知道数据有多少类/组。 K-Medians是K-Means的一种变体，是用数据集的中位数而不是均值来计算数据的中心点。 K-Medians的优势是使用中位数来计算中心点不受异常值的影响；缺点是计算中位数时需要对数据集中的数据进行排序，速度相对于K-Means较慢。
+ 均值漂移聚类 均值漂移聚类是基于滑动窗口的算法，来找到数据点的密集区域。这是一个基于质心的算法，通过将中心点的候选点更新为滑动窗口内点的均值来完成，来定位每个组/类的中心点。然后对这些候选窗口进行相似窗口进行去除，最终形成中心点集及相应的分组。 具体步骤： 确定滑动窗口半径r，以随机选取的中心点C半径为r的圆形滑动窗口开始滑动。均值漂移类似一种爬山算法，在每一次迭代中向密度更高的区域移动，直到收敛。 每一次滑动到新的区域，计算滑动窗口内的均值来作为中心点，滑动窗口内的点的数量为窗口内的密度。在每一次移动中，窗口会想密度更高的区域移动。 移动窗口，计算窗口内的中心点以及窗口内的密度，知道没有方向在窗口内可以容纳更多的点，即一直移动到圆内密度不再增加为止。 步骤一到三会产生很多个滑动窗口，当多个滑动窗口重叠时，保留包含最多点的窗口，然后根据数据点所在的滑动窗口进行聚类。 下图演示了均值漂移聚类的计算步骤：  下面显示了所有滑动窗口从头到尾的整个过程。每个黑点代表滑动窗口的质心，每个灰点代表一个数据点。
+优点：（1）不同于K-Means算法，均值漂移聚类算法不需要我们知道有多少类/组。 （2）基于密度的算法相比于K-Means受均值影响较小。 缺点：（1）窗口半径r的选择可能是不重要的。
+ 基于密度的聚类方法(DBSCAN) 与均值漂移聚类类似，DBSCAN也是基于密度的聚类算法。 具体步骤： 首先确定半径r和minPoints. 从一个没有被访问过的任意数据点开始，以这个点为中心，r为半径的圆内包含的点的数量是否大于或等于minPoints，如果大于或等于minPoints则改点被标记为central point,反之则会被标记为noise point。 重复1的步骤，如果一个noise point存在于某个central point为半径的圆内，则这个点被标记为边缘点，反之仍为noise point。重复步骤1，知道所有的点都被访问过。 优点：不需要知道簇的数量 缺点：需要确定距离r和minPoints
+ 凝聚层次聚类 层次聚类算法分为两类：自上而下和自下而上。凝聚层级聚类(HAC)是自下而上的一种聚类算法。HAC首先将每个数据点视为一个单一的簇，然后计算所有簇之间的距离来合并簇，知道所有的簇聚合成为一个簇为止。 下图为凝聚层级聚类的一个实例：
+  具体步骤： 1. 首先我们将每个数据点视为一个单一的簇，然后选择一个测量两个簇之间距离的度量标准。例如我们使用average linkage作为标准，它将两个簇之间的距离定义为第一个簇中的数据点与第二个簇中的数据点之间的平均距离。 2. 在每次迭代中，我们将两个具有最小average linkage的簇合并成为一个簇。 3. 重复步骤2知道所有的数据点合并成一个簇，然后选择我们需要多少个簇。 层次聚类 优点： （1）不需要知道有多少个簇 （2）对于距离度量标准的选择并不敏感 缺点：效率低</description>
+			<content type="html"><![CDATA[
+
+<h1 id="聚类的分类">聚类的分类</h1>
+
+<ol>
+<li>K-Means(K均值)聚类
+算法步骤：
+(1) 首先我们选择一些类/组，并随机初始化它们各自的中心点。中心点是与每个数据点向量长度相同的位置。这需要我们提前预知类的数量(即中心点的数量)。
+(2) 计算每个数据点到中心点的距离，数据点距离哪个中心点最近就划分到哪一类中。
+(3) 计算每一类中中心点作为新的中心点。
+(4) 重复以上步骤，直到每一类中心在每次迭代后变化不大为止。也可以多次随机初始化中心点，然后选择运行结果最好的一个。
+下图演示了K-Means进行分类的过程：</li>
+</ol>
+
+<p>优点：
+速度快，计算简便
+缺点：
+我们必须提前知道数据有多少类/组。
+K-Medians是K-Means的一种变体，是用数据集的中位数而不是均值来计算数据的中心点。
+K-Medians的优势是使用中位数来计算中心点不受异常值的影响；缺点是计算中位数时需要对数据集中的数据进行排序，速度相对于K-Means较慢。</p>
+
+<ol>
+<li>均值漂移聚类
+均值漂移聚类是基于滑动窗口的算法，来找到数据点的密集区域。这是一个基于质心的算法，通过将中心点的候选点更新为滑动窗口内点的均值来完成，来定位每个组/类的中心点。然后对这些候选窗口进行相似窗口进行去除，最终形成中心点集及相应的分组。
+具体步骤：</li>
+<li>确定滑动窗口半径r，以随机选取的中心点C半径为r的圆形滑动窗口开始滑动。均值漂移类似一种爬山算法，在每一次迭代中向密度更高的区域移动，直到收敛。</li>
+<li>每一次滑动到新的区域，计算滑动窗口内的均值来作为中心点，滑动窗口内的点的数量为窗口内的密度。在每一次移动中，窗口会想密度更高的区域移动。</li>
+<li>移动窗口，计算窗口内的中心点以及窗口内的密度，知道没有方向在窗口内可以容纳更多的点，即一直移动到圆内密度不再增加为止。</li>
+<li>步骤一到三会产生很多个滑动窗口，当多个滑动窗口重叠时，保留包含最多点的窗口，然后根据数据点所在的滑动窗口进行聚类。
+下图演示了均值漂移聚类的计算步骤：</li>
+</ol>
+
+<p>下面显示了所有滑动窗口从头到尾的整个过程。每个黑点代表滑动窗口的质心，每个灰点代表一个数据点。</p>
+
+<p>优点：（1）不同于K-Means算法，均值漂移聚类算法不需要我们知道有多少类/组。
+（2）基于密度的算法相比于K-Means受均值影响较小。
+缺点：（1）窗口半径r的选择可能是不重要的。</p>
+
+<ol>
+<li>基于密度的聚类方法(DBSCAN)
+与均值漂移聚类类似，DBSCAN也是基于密度的聚类算法。
+具体步骤：</li>
+<li>首先确定半径r和minPoints. 从一个没有被访问过的任意数据点开始，以这个点为中心，r为半径的圆内包含的点的数量是否大于或等于minPoints，如果大于或等于minPoints则改点被标记为central point,反之则会被标记为noise point。</li>
+
+<li><p>重复1的步骤，如果一个noise point存在于某个central point为半径的圆内，则这个点被标记为边缘点，反之仍为noise point。重复步骤1，知道所有的点都被访问过。
+优点：不需要知道簇的数量
+缺点：需要确定距离r和minPoints</p></li>
+
+<li><p>凝聚层次聚类
+层次聚类算法分为两类：自上而下和自下而上。凝聚层级聚类(HAC)是自下而上的一种聚类算法。HAC首先将每个数据点视为一个单一的簇，然后计算所有簇之间的距离来合并簇，知道所有的簇聚合成为一个簇为止。
+下图为凝聚层级聚类的一个实例：</p></li>
+</ol>
+
+<p>具体步骤：
+1. 首先我们将每个数据点视为一个单一的簇，然后选择一个测量两个簇之间距离的度量标准。例如我们使用average linkage作为标准，它将两个簇之间的距离定义为第一个簇中的数据点与第二个簇中的数据点之间的平均距离。
+2. 在每次迭代中，我们将两个具有最小average linkage的簇合并成为一个簇。
+3. 重复步骤2知道所有的数据点合并成一个簇，然后选择我们需要多少个簇。
+层次聚类
+优点：
+（1）不需要知道有多少个簇
+（2）对于距离度量标准的选择并不敏感
+缺点：效率低</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>安装zabbix server</title>
+			<link>/posts/a8/</link>
+			<pubDate>Sat, 16 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a8/</guid>
+			<description>安装zabbix server 　1、下载安装zabbix-release-3.4 的server
+　1. 下载地址：http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/ 找到对应版本，比如下面的安装地址
+　2. rpm -ivh http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-1.el7.centos.noarch.rpm
+　3. rpm -ql zabbix-release # 查看zabbix-release安装了哪些包（其中就有/etc/yum.repos.d/zabbix.repo）
+　4. yum makecache # 就是把服务器的包信息下载到本地电脑缓存起来
+　2、安装Zabbix部署包
+　yum install zabbix-server-mysql zabbix-web-mysql
+　3、我们测试自己监控自己所以要安装下面两个包（装zabbix）
+　yum -y install zabbix-server zabbix-agent
+　4、安装zabbix需要用的数据库
+　yum -y install mariadb-server
+ 5、初始化数据库  　1）在MySQL上安装Zabbix数据库和用户： 2）参考地址：https://www.zabbix.com/documentation/3.4/manual/appendix/install/db_scripts
+　systemctl start mariadb # 开启数据库
+　mysql -uroot –p # 登录数据库：没有密码
+　create database zabbix character set utf8 collate utf8_bin; # 创建数据库</description>
+			<content type="html"><![CDATA[
+
+<h1 id="安装zabbix-server">安装zabbix server</h1>
+
+<p>　1、下载安装zabbix-release-3.4 的server</p>
+
+<p>　　　　　　1. 下载地址：<a href="http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/">http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/</a> 找到对应版本，比如下面的安装地址</p>
+
+<p>　　　　　　2.  rpm -ivh <a href="http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-1.el7.centos.noarch.rpm">http://repo.zabbix.com/zabbix/3.4/rhel/7/x86_64/zabbix-release-3.4-1.el7.centos.noarch.rpm</a></p>
+
+<p>　　　　　　3. rpm -ql zabbix-release      # 查看zabbix-release安装了哪些包（其中就有/etc/yum.repos.d/zabbix.repo）</p>
+
+<p>　　　　　　4. yum makecache             # 就是把服务器的包信息下载到本地电脑缓存起来</p>
+
+<p>　　2、安装Zabbix部署包</p>
+
+<p>　　　　　　yum install zabbix-server-mysql zabbix-web-mysql</p>
+
+<p>　　3、我们测试自己监控自己所以要安装下面两个包（装zabbix）</p>
+
+<p>　　　　　　yum -y install zabbix-server zabbix-agent</p>
+
+<p>　　4、安装zabbix需要用的数据库</p>
+
+<p>　　　　　　yum -y install mariadb-server</p>
+
+<pre><code>   5、初始化数据库
+</code></pre>
+
+<p>　　　　　　1）在MySQL上安装Zabbix数据库和用户：
+　　　　　　2）参考地址：<a href="https://www.zabbix.com/documentation/3.4/manual/appendix/install/db_scripts">https://www.zabbix.com/documentation/3.4/manual/appendix/install/db_scripts</a></p>
+
+<p>　　　　　　systemctl start mariadb          # 开启数据库</p>
+
+<p>　　　　　　mysql -uroot –p                   # 登录数据库：没有密码</p>
+
+<p>　　　　　　create database zabbix character set utf8 collate utf8_bin;                            # 创建数据库</p>
+
+<p>　　　　　　grant all privileges on zabbix.* to zabbix@localhost identified by &lsquo;zabbix&rsquo;;     # 创建zabbix用户密码zabbix，并授权</p>
+
+<p>　　6、然后导入初始架构（Schema）和数据</p>
+
+<p>　　　　　　cd /usr/share/doc/zabbix-server-mysql-3.4.8/</p>
+
+<p>　　　　　　zcat create.sql.gz | mysql -uroot zabbix –p              # 将表导入到刚刚创建的zabbix数据库中</p>
+
+<p>　　7、修改server配置文件zabbix_server.conf</p>
+
+<p>复制代码
+vim /etc/zabbix/zabbix_server.conf</p>
+
+<p>DBHost=localhost
+DBName=zabbix
+DBPassword=zabbix
+DBPort=3306
+复制代码
+　　8、启动zabbix服务</p>
+
+<p>复制代码</p>
+
+<h1 id="1-关闭防火墙">1、关闭防火墙</h1>
+
+<p>vim /etc/selinux/config      #关闭防火墙
+SELINUX=disabled
+setenforce 0
+systemctl stop firewalld</p>
+
+<h1 id="2-启动zabbix">2、启动zabbix</h1>
+
+<p>systemctl start zabbix-server
+systemctl status zabbix-server
+复制代码
+　　9、编辑Zabbix前端的PHP配置</p>
+
+<p>vim /etc/httpd/conf.d/zabbix.conf              # 将时区改成上海
+php_value date.timezone Asia/ShangHai</p>
+
+<p>systemctl start httpd                          # 开启Apache服务
+systemctl status httpd
+　　10、配置完成后即可通过页面访问并进行设置</p>
+
+<p>　　　　　　访问地址： <a href="http://1.1.1.3/zabbix/setup.php">http://1.1.1.3/zabbix/setup.php</a></p>
+
+<p>　　　　注：上面的操作实质生成 /etc/zabbix/web/zabbix.conf.php 文件</p>
+
+<p>　　　　用户名/密码：  Admin/zabbix</p>
+
+<p>　　　　管理页面路径：<a href="http://1.1.1.5/zabbix/zabbix.php?action=dashboard.view">http://1.1.1.5/zabbix/zabbix.php?action=dashboard.view</a></p>
+
+<p>1.2 zabbix server基本操作     返回顶部
+　　1、登录和配置用户</p>
+
+<p>　　2、将zabbix server自己添加到监控中</p>
+
+<p>　　　　1. 修改agent配置文件</p>
+
+<p>vim /etc/zabbix/zabbix_agentd.conf
+Server=1.1.1.3                      # 配置zabbix server地址</p>
+
+<p>systemctl restart zabbix-agent      # 重启zabbix-agent使配置生效
+　　　　2. 在页面上添加主机</p>
+
+<p>1.3 zabbix-agent安装配置     返回顶部
+　　1、安装zabbix-agent</p>
+
+<p>　　　　　　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix</p>
+
+<p>　　　　　　2. 找到清华大学镜像源找到对应版本的agent：<a href="https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/">https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/</a></p>
+
+<p>　　　　　　3. 安装：rpm –ivh <a href="https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm">https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm</a></p>
+
+<p>　　2、修改agent配置文件</p>
+
+<p>复制代码
+vim /etc/zabbix/zabbix_agentd.conf
+Server=1.1.1.5</p>
+
+<p>开启zabbix-agent： systemctl start zabbix-agent
+查看agent状态：systemctl status zabbix-agent<br />
+查看agent是否监听端口：netstat -lntp
+查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>git常见报错解决方法</title>
+			<link>/posts/a6/</link>
+			<pubDate>Fri, 15 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a6/</guid>
+			<description>git常见报错解决方法 1、warning: LF will be replaced by CRLF in .idea/workspace.xml.
+　参考博客：https://www.cnblogs.com/helloHKTK/p/7351946.html
+　git config &amp;ndash;global core.autocrlf true
+1.2 phabricator使用arc提交代码步骤 1、拉取服务器代码
+　注：提交代码之前，需先从服务器上面拉取代码，以防覆盖别人代码。
+　git pull origin moniotr-callback
+　2、查看当前工作目录树的工作修改状态
+　git status
+　1：Untracked: 未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.
+　2：Modified: 文件已修改, 仅仅是修改, 并没有进行其他的操作.
+　3：deleted： 文件已删除，本地删除，服务器上还没有删除.
+　4：renamed：
+　git reset HEAD res/tmp_query/query # 撤销指定文件修改
+　git checkout webApp/res/tmp_query/query # 放弃本地某个文件的修改
+　git diff &amp;ndash;cached static/js/main.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="git常见报错解决方法">git常见报错解决方法</h1>
+
+<p>1、warning: LF will be replaced by CRLF in .idea/workspace.xml.</p>
+
+<p>　　　　　　参考博客：<a href="https://www.cnblogs.com/helloHKTK/p/7351946.html">https://www.cnblogs.com/helloHKTK/p/7351946.html</a></p>
+
+<p>　　　　　　git config &ndash;global core.autocrlf true</p>
+
+<p>1.2 phabricator使用arc提交代码步骤
+　　1、拉取服务器代码</p>
+
+<p>　　　　　　注：提交代码之前，需先从服务器上面拉取代码，以防覆盖别人代码。</p>
+
+<p>　　　　　　git pull origin moniotr-callback</p>
+
+<p>　　2、查看当前工作目录树的工作修改状态</p>
+
+<p>　　　　　　git status</p>
+
+<p>　　　　　　　　1：Untracked: 未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.</p>
+
+<p>　　　　　　　　2：Modified: 文件已修改, 仅仅是修改, 并没有进行其他的操作.</p>
+
+<p>　　　　　　　　3：deleted： 文件已删除，本地删除，服务器上还没有删除.</p>
+
+<p>　　　　　　　　4：renamed：</p>
+
+<p>　　　　　　git reset HEAD   res/tmp_query/query              # 撤销指定文件修改</p>
+
+<p>　　　　　　git checkout webApp/res/tmp_query/query        #  放弃本地某个文件的修改</p>
+
+<p>　　　　　　git diff &ndash;cached  static/js/main.js                      # 比较暂存区与最新本地版本库（本地库中最近一次commit的内容）</p>
+
+<p>　　3、将状态改变的代码提交至缓存</p>
+
+<p>　　　　　　　　git add + 文件
+　　　　　　　　git add -u + 路径：将修改过的被跟踪代码提交缓存
+　　　　　　　　git add -A + 路径: 将修改过的未被跟踪的代码提交至缓存</p>
+
+<p>　　　　　　　　git stash -u -k        # 忽略其他，关键一步</p>
+
+<p>　　　　　　　　例如：</p>
+
+<p>　　　　　　　　　　1）将 vpaas-frontend/src/components 目录下被跟踪的已修改过的代码提交到缓存中</p>
+
+<p>　　　　　　　　　　　　　　git add -u vpaas-frontend/src/components</p>
+
+<p>　　　　　　　　　　2）将 vpaas-frontend/src/components 目录下未被跟踪的已修改过的代码提交到缓存中</p>
+
+<p>　　　　　　　　　　　　　　git add -A vpaas-frontend/src/components</p>
+
+<p>　　4、将代码提交到本地仓库中</p>
+
+<p>　　　　　　git commit -m “注释部分 ref T3070”</p>
+
+<p>　　5、将本次commit 发送给Phabricator指定人员审核</p>
+
+<p>　　　　　　arc diff            # 提交默认diff</p>
+
+<p>　　　　　　arc diff 时会提示让你指定 Reviewers,意思是本次diff能让谁进行审核
+　　　　　　你必须指定至少一人来审核你的本次提交,例如你的项目负责人,在Phabricator平台的&rdquo;People&rdquo;栏目里可以看到所有成员的名字</p>
+
+<p>　　6、将代码推送到服务器</p>
+
+<p>　　　　　　git push</p>
+
+<p>　　　　　　arc land 　　　　# 提交代码，删除该分支 or 使用 git push（等价于 git push）</p>
+
+<p>　　7、回滚</p>
+
+<p>　　　　1）误将代码提交到缓存中（利用 git add 命令误将代码提交的缓存中）</p>
+
+<p>　　　　　　　　git reset d98947726bc454fa5265b2e16645</p>
+
+<p>　　　　　　　　# 回退一个版本,且会将暂存区的内容和本地已提交的内容全部恢复到未暂存的状态,不影响原来本地文件(未提交的也 不受影响)</p>
+
+<p>　　　　2）误将代码提交到本地仓库（利用 git commit 命令误将代码提交到本地仓库）</p>
+
+<p>　　　　　　　　1. 回退一个版本,不清空暂存区,将已提交的内容恢复到暂存区,不影响原来本地的文件(未提交的也不受影响)</p>
+
+<p>　　　　　　　　　　　　git reset &ndash;soft + 版本号</p>
+
+<p>　　　　　　　　2. 彻底回退到某个版本，本地的代码也会改变上一个版本内容。</p>
+
+<p>　　　　　　　　　　　　git reset &ndash;hard + 版本号</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>数据的预处理</title>
+			<link>/posts/j6/</link>
+			<pubDate>Fri, 15 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j6/</guid>
+			<description>数据的预处理 From sklearn import preprocessing 均值移除：Mean removal 去除均值和方差进行缩放。（均值为0，标准差为1) preprocessing.scale(data) #0均值处理 范围缩放 scaling 必要性：数据点中每个特征列的数值范围可能变化很大，因此，有时需要将特征列的数值范围缩放到合理的大小。 preprocessing.MinMaxScaler(feature_range=(0,1)) # 缩放到（0,1）之间
+归一化 Normalization 用于需要对特征向量的值进行调整时，以保证每个特征向量的值都缩放到相同的数值范围。机器学习中最常用的归 一化形式就是将特征向量调整为L1范数，归一化就是L1/L2为1 preprocessing.normalize(data,norm=&amp;lsquo;l1&amp;rsquo;) 二值化 Binarization 1，二值化之后的数据点都是0或者1，所以叫做二值化。 2，计算方法是，将所有大于threshold的数据都改为1，小于等于threshold的都设为0。 3，经常用于出现某种特征（比如设为1），或者没有出现某种特征（设为0）的应用场合。 preprocessing.Binarizer(threshold=1.4).fit_transform(data) #小于等于 threshold 为0
+独热编码One-Hot Encoding 通常，需要处理的数值都是稀疏地，散乱地分布在空间中，但我们并不需要存储这些大数值，这时就需要使用独热 编码，独热编码实际上是一种收紧特征向量的工具。 preprocessing.OneHotEncoder()
+数据离散化 作用：将连续型数据离散化 ages = [20,33,54,23,66,77,88,99,26,63] bins = [18,25,35,60,100] labels = [&amp;lsquo;少年&amp;rsquo;,&amp;lsquo;青年&amp;rsquo;,&amp;lsquo;中年&amp;rsquo;,&amp;lsquo;老年&amp;rsquo;] new_ages = pd.cut(x=ages,bins=bins,labels=labels,retbins=True)#retbins:返回bins print(new_ages)</description>
+			<content type="html"><![CDATA[
+
+<h1 id="数据的预处理">数据的预处理</h1>
+
+<p>From sklearn import  preprocessing
+均值移除：Mean removal
+    去除均值和方差进行缩放。（均值为0，标准差为1)
+   preprocessing.scale(data) #0均值处理
+范围缩放  scaling
+    必要性：数据点中每个特征列的数值范围可能变化很大，因此，有时需要将特征列的数值范围缩放到合理的大小。
+preprocessing.MinMaxScaler(feature_range=(0,1)) # 缩放到（0,1）之间</p>
+
+<p>归一化 Normalization
+    用于需要对特征向量的值进行调整时，以保证每个特征向量的值都缩放到相同的数值范围。机器学习中最常用的归 一化形式就是将特征向量调整为L1范数，归一化就是L1/L2为1
+preprocessing.normalize(data,norm=&lsquo;l1&rsquo;)
+二值化  Binarization
+    1，二值化之后的数据点都是0或者1，所以叫做二值化。
+    2，计算方法是，将所有大于threshold的数据都改为1，小于等于threshold的都设为0。 3，经常用于出现某种特征（比如设为1），或者没有出现某种特征（设为0）的应用场合。
+    preprocessing.Binarizer(threshold=1.4).fit_transform(data) #小于等于 threshold 为0</p>
+
+<p>独热编码One-Hot Encoding
+    通常，需要处理的数值都是稀疏地，散乱地分布在空间中，但我们并不需要存储这些大数值，这时就需要使用独热 编码，独热编码实际上是一种收紧特征向量的工具。
+preprocessing.OneHotEncoder()</p>
+
+<p>数据离散化
+作用：将连续型数据离散化
+ages = [20,33,54,23,66,77,88,99,26,63] bins = [18,25,35,60,100] labels = [&lsquo;少年&rsquo;,&lsquo;青年&rsquo;,&lsquo;中年&rsquo;,&lsquo;老年&rsquo;] new_ages = pd.cut(x=ages,bins=bins,labels=labels,retbins=True)#retbins:返回bins print(new_ages)</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>自动化运维架构</title>
+			<link>/posts/a7/</link>
+			<pubDate>Fri, 15 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a7/</guid>
+			<description>自动化运维架构 　1、DevOps定义
+　1. DevOps是“开发”和“运维”的缩写。
+　2. DevOps是一组最佳实践强调（IT研发、运维、测试）在应用和服务生命周期中的协作和沟通
+　3. 强调整个组织的合作以及交付和基础设施变更自动化，从而实现持续集成、持续部署和持续交付
+　2、DevOps持续交付环
+　1. 我们把开发交付划分为: 计划 &amp;ndash;&amp;gt; 编码 &amp;ndash;&amp;gt; 构建 &amp;ndash;&amp;gt; 测试 &amp;ndash;&amp;gt; 版本 &amp;ndash;&amp;gt; 部署 &amp;ndash;&amp;gt; 运维 &amp;ndash;&amp;gt; 监控 的一个闭环。
+　2. DevOps的目标是通过建立并不断完善持续交付的流水线。</description>
+			<content type="html"><![CDATA[
+
+<h1 id="自动化运维架构">自动化运维架构</h1>
+
+<p>　1、DevOps定义</p>
+
+<p>　　　　　　1. DevOps是“开发”和“运维”的缩写。</p>
+
+<p>　　　　　　2. DevOps是一组最佳实践强调（IT研发、运维、测试）在应用和服务生命周期中的协作和沟通</p>
+
+<p>　　　　　　3. 强调整个组织的合作以及交付和基础设施变更自动化，从而实现持续集成、持续部署和持续交付</p>
+
+<p>　　2、DevOps持续交付环</p>
+
+<p>　　　　　　1. 我们把开发交付划分为:  计划  &ndash;&gt; 编码 &ndash;&gt; 构建 &ndash;&gt; 测试 &ndash;&gt; 版本 &ndash;&gt; 部署 &ndash;&gt; 运维 &ndash;&gt; 监控 的一个闭环。</p>
+
+<p>　　　　　　2. DevOps的目标是通过建立并不断完善持续交付的流水线。</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>git分支管理</title>
+			<link>/posts/a5/</link>
+			<pubDate>Wed, 13 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a5/</guid>
+			<description>git分支管理 1、git常用命令 echo &amp;ldquo;#Description&amp;rdquo; &amp;gt; README.md， 添加一个文件 git status， 查看当前状态，发现有未跟踪文件 git add .， 当前目录所有文件添加到暂存区 git diff， 比较当前工作区和暂存区有何不同 git status， 查看当前状态，发现有文件未提交 git commit -m &amp;ldquo;注释&amp;rdquo;， 把暂存区内容提交到本地仓库 git push -u origin master， 把本地仓库的提交推送到远程仓库 git log -2， 查看提交日志
+　2、git分支管理常用命令
+　git branch 显示所有分支
+　git branch b1 从当前分支创建一个叫b1的分支
+　git checkout b1 切换到b1分支
+　git checkout -b b1 相当于以上两条命令的组合
+　git checkout master 切换到master主分支
+　git merge b1 把b1分支的代码合并到master上
+　git branch -d b1 删除b1分支，不能在被删除分支上执行</description>
+			<content type="html"><![CDATA[
+
+<h1 id="git分支管理">git分支管理</h1>
+
+<p>1、git常用命令
+　　　　　　echo &ldquo;#Description&rdquo; &gt; README.md，      添加一个文件
+　　　　　　git status，                             查看当前状态，发现有未跟踪文件
+　　　　　　git add .，                            当前目录所有文件添加到暂存区
+　　　　　　git diff，                                比较当前工作区和暂存区有何不同
+　　　　　　git status，                            查看当前状态，发现有文件未提交
+　　　　　　git commit -m &ldquo;注释&rdquo;，                把暂存区内容提交到本地仓库
+　　　　　　git push -u origin master，      把本地仓库的提交推送到远程仓库
+　　　　　　git log -2，                                   查看提交日志</p>
+
+<p>　　2、git分支管理常用命令</p>
+
+<p>　　　　　　git branch               显示所有分支</p>
+
+<p>　　　　　　git branch b1           从当前分支创建一个叫b1的分支</p>
+
+<p>　　　　　　git checkout b1         切换到b1分支</p>
+
+<p>　　　　　　git checkout -b b1    相当于以上两条命令的组合</p>
+
+<p>　　　　　　git checkout master     切换到master主分支</p>
+
+<p>　　　　　　git merge b1              把b1分支的代码合并到master上</p>
+
+<p>　　　　　　git branch -d b1          删除b1分支，不能在被删除分支上执行</p>
+
+<p>　　3、命名规则</p>
+
+<p>　　　　　　每次提交必须写明注释，如果是修复Bug，请加上Bug号</p>
+
+<p>　　　　　　创建特性分支，名称要以f-开头，加上特性名</p>
+
+<p>　　　　　　创建发布分支，名称要以r-开头，加上预发布版本号</p>
+
+<p>　　　　　　创建Bug修复分支，名称要以b-开头，加上Bug号</p>
+
+<p>　　　　　　创建标签，名称要以t-开头，加上发布版本号</p>
+
+<p>　　　　　　合并分支时必须使用&ndash;no-ff参数，以保留合并历史轨迹</p>
+
+<p>1.2 主要分支（保护分支）     返回顶部
+　　1. master 主分支，稳定代码，为生产环境做准备的
+　　2. develop 开发分支，为开发服务</p>
+
+<p>　　　　　　</p>
+
+<p>1.3 特性分支：feature (开发分支合并到dev分支)<br />
+　　从develop分支创建，用于特性开发，完成后要合并回develop分支。
+　　操作过程：</p>
+
+<p>　　　　git checkout -b feature-01 dev              从dev分支创建 feature-01 特性分支
+　　　　git checkout dev                                  开发完成后，需要合并回dev分支，先切换到dev分支
+　　　　git merge &ndash;no-ff feature-01                  合并回develop分支，必须加&ndash;no-ff参数
+　　　　git status                                               查看当前有哪些文件有冲突
+　　　　git diff readme.txt                                  查看冲突文件详情
+　　　　git add readme.txt                                将解决冲突后的文件添加到暂存区
+　　　　git commit -m &ldquo;conflict fixed&rdquo;                 所有冲突解决后提交到版本库
+　　　　git log &ndash;graph                                        查看分支合并图
+　　　　git branch -d feature-01                         删除特性分支
+　　　　git push origin dev                                  把合并后的develop分支推送到远程仓库</p>
+
+<p>冲突标记
+ 　　　  　</p>
+
+<p>　　2、远程分支版本回退的方法</p>
+
+<p>　　　　　　git reflog
+　　　　　　git reset &ndash;hard Obfafd
+　　　　　　git push -f origin dev</p>
+
+<p>1.4 发布分支：develop<br />
+　　从develop分支创建，用于预发布版本，允许小bug修复，完成后要合并回develop和master。
+　　操作过程：
+　　　　git checkou -b release-1.2 dev         创建一个发布分支
+　　　　git checkout master                 切换到master分支，准备合并
+　　　　git merge &ndash;no-ff release-1.2          把release-1.2分支合并到master分支
+　　　　git tag 1.2                      从master分支打一个标签
+　　　　git checkou dev                   切换到develop分支，准备合并
+　　　　git merge &ndash;no-ff release-1.2           把release-1.2分支合并到dev分支
+　　　　git branch -d release-1.2            删除这个发布分支</p>
+
+<p>1.5 修复分支：bug<br />
+　　从master分支创建，用于生产环境上的Bug修复，完成后要合并回develop和master。
+　　操作过程：
+　　　　git checkout -b hotfix-1.2.1 master      从master分支创建一个Bug修复分支
+　　　　git checkout master                切换到master分支，准备合并
+　　　　git merge &ndash;no-ff hotfix-1.2.1         合并到master分支
+　　　　git tag 1.2.1                    为master分支创建一个标签
+　　　　git checkout develop                切换到develop分支，准备合并
+　　　　git merge &ndash;no-ff hotfix-1.2.1         合并到develop分支
+　　　　git branch -d hotfix-1.2.1            删除hotfix-1.2.1分支</p>
+
+<p>　　　　</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>git &amp; github</title>
+			<link>/posts/a4/</link>
+			<pubDate>Mon, 11 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/a4/</guid>
+			<description>git &amp;amp; github 　1. 为什么要使用版本控制 1、举例说明： 1）假设你在的公司要上线一个新功能，你们开发团队为实现这个新功能，写了大约5000行代码，上线没2 天，就发现这个功能用户并不喜欢，你老板让你去掉这个功能，你怎么办？ 2）你说简单，直接把5000行代码去掉就行了，但是我的亲，说的简单，你的这个功能写了3周时间，但你 还能记得你是新增加了哪5000行代码么？ 3）所以你急需要一个工具，能帮你记录每次对代码做了哪些修改，并且可以轻易的把代码回滚到历史上的 某个状态。 这个神奇的工具就叫做版本控制 2、版本控制工具主要实现2个功能 1）版本管理 在开发中，这是刚需，必须允许可以很容易对产品的版本进行任意回滚，版本控制工具实现这个功能的 原理简单来讲，就是你每修改一次代码，它就帮你做一次快照 2）协作开发 a. 一个复杂点的软件，往往不是一个开发人员可以搞定的，公司为加快产品开发速度，会招聘一堆跟 你一样的开发人员开发这个产品 b. 拿微信来举例，现在假设3个人一起开发微信，A开发联系人功能，B开发发文字、图片、语音通讯 功能，C开发视频通话功能， B和C的功能都是要基于通讯录的 c. 你说简单，直接把A开发的代码copy过来，在它的基础上开发就好了，可以，但是你在他的代码基 础上开发了2周后，这期间A没闲着，对通讯录代码作了更新，此时怎么办？你和他的代码不一致 d. 此时我们知道，你肯定要再把A的新代码拿过来替换掉你手上的旧通讯录功能代码， 现在人少，3 个人之间沟通很简单，但想想，如果团队变成30个人呢？ e. 来回这样copy代码，很快就乱了， 所以此时亟需一个工具，能确保一直存储最新的代码库，所有 人的代码应该和最新的代码库保持一致 2. 常见版本管理工具介绍 1、SVN --CollabNet Subversion 1. SVN是集中式版本控制系统，版本库是集中放在中央服务器的，而干活的时候，用的都是自己的电脑， 2. 所以首先要从中央服务器哪里得到最新的版本，然后干活，干完后，需要把自己做完的活推送到中央服务器。 3. 集中式版本控制系统是必须联网才能工作，如果在局域网还可以，带宽够大，速度够快，如果在互联网下，如果网速慢的话，就纳闷了。 2、GIT 1. Git是分布式版本控制系统，那么它就没有中央服务器的，每个人的电脑就是一个完整的版本库， 2. 这样，工作的时候就不需要联网了，因为版本都是在自己的电脑上。 3. 你们两之间只需把各自的修改推送给对方，就可以互相看到对方的修改了，当然也可以推送到git的仓库中，比如GitHub 1.2 git、GitHub和SVN比较 返回顶部 1． Git 1、git是一个版本管理工具，是可以在你电脑不联网的情况下，只在本地使用的一个版本管理工具 2、其作用就是可以让你更好的管理你的程序，比如你原来提交过的内容，以后虽然修改了，但是通过git这个 工具，可以把你原来提交的内容重现出来 2. GitHub 1、github是一个网站，就是每个程序员自己写的程序，可以在github上建立一个网上的仓库， 2、你每次提交的时候可以把代码提交到网上，，这样你的每次提交，别人也都可以看到你的代码，同时别人也 可以帮你修改你的代码，这种开源的方式非常方便程序员之间的交流和学习 3、github是一个非常适合程序员交流的网站，很多国际上的技术大牛都在github上有自己的开源代码，其他 人只要申请个账号就可以随意的看到这些大牛写的程序 总结： git可以认为是一个软件，能够帮你更好的写程序，github则是一个网站，这个网站可以帮助程序员之间互相交流和学习。 3.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="git-github">git &amp; github</h1>
+
+<pre><code>　1. 为什么要使用版本控制
+
+　　　　1、举例说明：
+
+　　　　　　1）假设你在的公司要上线一个新功能，你们开发团队为实现这个新功能，写了大约5000行代码，上线没2
+　　　　　　     天，就发现这个功能用户并不喜欢，你老板让你去掉这个功能，你怎么办？
+　　　　　　2）你说简单，直接把5000行代码去掉就行了，但是我的亲，说的简单，你的这个功能写了3周时间，但你
+　　　　　　     还能记得你是新增加了哪5000行代码么？
+　　　　　　3）所以你急需要一个工具，能帮你记录每次对代码做了哪些修改，并且可以轻易的把代码回滚到历史上的
+　　　　　　     某个状态。 这个神奇的工具就叫做版本控制
+
+　　　　2、版本控制工具主要实现2个功能
+
+　　　　　　1）版本管理
+
+　　　　　　　　　　在开发中，这是刚需，必须允许可以很容易对产品的版本进行任意回滚，版本控制工具实现这个功能的
+　　　　　　　　　　原理简单来讲，就是你每修改一次代码，它就帮你做一次快照
+
+　　　　　　2）协作开发
+
+　　　　　　　　　　a. 一个复杂点的软件，往往不是一个开发人员可以搞定的，公司为加快产品开发速度，会招聘一堆跟
+　　　　　　　　　　    你一样的开发人员开发这个产品
+　　　　　　　　　　b. 拿微信来举例，现在假设3个人一起开发微信，A开发联系人功能，B开发发文字、图片、语音通讯
+　　　　　　　　　　    功能，C开发视频通话功能， B和C的功能都是要基于通讯录的
+　　　　　　　　　　c. 你说简单，直接把A开发的代码copy过来，在它的基础上开发就好了，可以，但是你在他的代码基
+　　　　　　　　　　    础上开发了2周后，这期间A没闲着，对通讯录代码作了更新，此时怎么办？你和他的代码不一致 
+　　　　　　　　　　d. 此时我们知道，你肯定要再把A的新代码拿过来替换掉你手上的旧通讯录功能代码， 现在人少，3
+　　　　　　　　　　    个人之间沟通很简单，但想想，如果团队变成30个人呢？
+　　　　　　　　　　e. 来回这样copy代码，很快就乱了， 所以此时亟需一个工具，能确保一直存储最新的代码库，所有
+　　　　　　　　　　    人的代码应该和最新的代码库保持一致
+
+　　2. 常见版本管理工具介绍
+
+　　　　1、SVN --CollabNet Subversion
+
+　　　　　　　　1. SVN是集中式版本控制系统，版本库是集中放在中央服务器的，而干活的时候，用的都是自己的电脑，
+　　　　　　　　2. 所以首先要从中央服务器哪里得到最新的版本，然后干活，干完后，需要把自己做完的活推送到中央服务器。
+　　　　　　　　3. 集中式版本控制系统是必须联网才能工作，如果在局域网还可以，带宽够大，速度够快，如果在互联网下，如果网速慢的话，就纳闷了。
+
+              2、GIT
+
+　　　　　　　　1. Git是分布式版本控制系统，那么它就没有中央服务器的，每个人的电脑就是一个完整的版本库，
+　　　　　　　　2. 这样，工作的时候就不需要联网了，因为版本都是在自己的电脑上。
+　　　　　　　　3. 你们两之间只需把各自的修改推送给对方，就可以互相看到对方的修改了，当然也可以推送到git的仓库中，比如GitHub
+
+1.2 git、GitHub和SVN比较     返回顶部
+　　1． Git
+
+　　　　　　1、git是一个版本管理工具，是可以在你电脑不联网的情况下，只在本地使用的一个版本管理工具
+　　　　　　2、其作用就是可以让你更好的管理你的程序，比如你原来提交过的内容，以后虽然修改了，但是通过git这个
+　　　　 　　    工具，可以把你原来提交的内容重现出来
+
+　　2. GitHub
+
+　　　　　　1、github是一个网站，就是每个程序员自己写的程序，可以在github上建立一个网上的仓库，
+　　　　　　2、你每次提交的时候可以把代码提交到网上，，这样你的每次提交，别人也都可以看到你的代码，同时别人也
+　　　　　　     可以帮你修改你的代码，这种开源的方式非常方便程序员之间的交流和学习
+　　　　　　3、github是一个非常适合程序员交流的网站，很多国际上的技术大牛都在github上有自己的开源代码，其他
+　　　　　　     人只要申请个账号就可以随意的看到这些大牛写的程序
+　　　　　　总结： git可以认为是一个软件，能够帮你更好的写程序，github则是一个网站，这个网站可以帮助程序员之间互相交流和学习。
+
+　　3. SVN与git比较
+
+　　　　　　1、Git是分布式的，SVN是集中式的，好处是跟其他同事不会有太多的冲突，自己写的代码放在自己电脑上，
+　　　　　　      一段时间后再提交、合并，也可以不用联网在本地提交
+　　　　　　2、Git下载下来后，在本地不必联网就可以看到所有的log，很方便学习，SVN却需要联网；
+　　　　　　3、Git鼓励分Branch，而SVN，说实话，我用Branch的次数还挺少的，SVN自带的Branch merge我还真没用过
+　　　　　　4、SVN在Commit前，我们都建议是先Update一下，跟本地的代码编译没问题，并确保开发的功能正常后再
+　　　　　　     提交，这样其实挺麻烦的，有好几次同事没有先Updat，Commit了，发生了一些错误，Git可能这种情况
+
+1.3 本地git基本使用命令     返回顶部
+　　1. 创建git版本库
+　　　　　　1、版本库又名仓库，英文名repository，你可以简单理解成一个目录，
+　　　　　　2、这个目录里面的所有文件都可以被Git管理起来，每个文件的修改、删除，Git都能跟踪，以便任何时刻都
+　　　　　　     可以追踪历史，或者在将来某个时刻可以“还原”。
+　　　　　　3、所以，创建一个版本库非常简单，首先，选择一个合适的地方，创建一个空目
+　　　　　　4、瞬间Git就把仓库建好了，而且告诉你是一个空的仓库（empty Git repository）
+　　　　　　5、细心的读者可以发现当前目录下多了一个.git的目录，这个目录是Git来跟踪管理版本库的，没事千万不要
+　　　　　　     手动修改这个目录里面的文件，不然改乱了，就把Git仓库给破坏了。
+
+　　mkdir s15_gitpro                 #先创建一个项目
+　　cd s15_gitpro/                   #切换到这个项目目录
+　　git init                         #初始化这个
+　　2. 工作区、暂存区、代码仓库
+　　　　　　1、工作区： 就是你在电脑上看到的目录，比如目录下testgit里的文件(.git隐藏目录版本库除外)。
+　　　　　　2、暂存区 :  暂存区就是文件夹 .git中的一个小部分（.git文件夹就是版本库）
+　　　　　　3、版本库：工作区有一个隐藏目录.git,这个不属于工作区，这是版本库，  版本库中还有Git为我们
+　　　　　　                   自动创建了第一个分支master,以及指向master的一个指针HEAD
+
+　　　　　　4、    把文件添加到版本库分为以下三步：
+　　　　　　　　1）vim Readme                        #工作区（Working Zone） 比如在mkdir s15_gitpro下执行创建文件命令
+　　　　　　　　2）git add                                 #暂存区（Stage zone）
+　　　　　　　　3）git commit                           #代码仓库（Repository master） 只有提交到代码库才能被git管理
+
+　　3、本地git基本命令
+
+　　　　1、将文件添加到仓库
+　　　　　　　　git add Readme                       #指定将Readme文件添加到暂存区
+　　　　　　　　git add .                                   #将当前目录中的所有文件全部添加到暂存区
+　　　　　　　　git status                                 #查看更改了哪些，创建了哪些，哪些没有添加到仓库，哪些添加到了仓库
+　　　　　　　　git status diff readme              #查看readme文件具体修改了哪些
+　　　　　　　　git commit -m &quot;commit tag&quot;     # git commit告诉Git，把文件提交到仓库-m后面输入的是本次提交的说明(版本名字)
+
+　　　　　　　　说明：
+　　　　　　　　　　# 执行git commit 命令时必须配置用户信息
+　　　　　　　　　　git config --global user.name &quot;Tom Git&quot;
+　　　　　　　　　　git config --global user.email tom@example.com
+
+　　　　2、回滚
+　　　　　　　　git log                                         #查看所有提交到仓库的版本记录:   git log -2
+　　　　　　　　git reflog                                     #查看所有操作记录（状态的md5值和改变的值）
+　　　　　　　　git reset --hard d9e0ed0            #回到指定版本（d9e0ed0是创建版本的MD5值得前6位或者7位）
+　　　　　　　　git reset --hard HEAD^               #回到上一个版本
+　　　　　　　　注：这样可以回到第一次提交到仓库的状态，但再使用git log看不到其他几次的md5值了
+
+　　　　3、撤销修改
+
+　　　　　　　　vim Readme                               #我们在Readme文件中写了一些错误的代码 
+　　　　　　　　git add .                                      #然后又一不小心将文件从工作区提交到了 stage区
+　　　　　　　　git reset HEAD Readme            #将Readme中刚提交到 stage区 的代码撤回到工作区
+　　　　　　　　git status                                    #查看目前工作区状态    
+　　　　　　　　git checkout -- Readme             #将Readme在工作区错误的代码丢弃
+
+　　　　4、删除操作（两种方法）
+
+　　　　　　　　方法1：这种方法需要执行git add .  
+
+　　　　　　　　　　rm Readme
+　　　　　　　　　　git add .
+　　　　　　　　　　git commit -m &quot;delete file by git rm&quot;
+　　　　　　　　　　git reset --hard HEAD^
+
+　　　　　　　　方法2：这种方法可以省去执行git add .
+
+　　　　　　　　　　git rm Readme
+　　　　　　　　　　git commit -m &quot;delete file by git rm&quot;
+　　　　　　　　　　git reset --hard HEAD^
+
+　　　　　　　　注： 在没有git commit前，使用 git checkout -- Readme 可以恢复删除的文件（Readme）
+
+　　　　5、强制使用master覆盖本地代码
+
+　　　　　　　　$ git fetch --all
+　　　　　　　　$ git reset --hard origin/master
+　　　　　　　　$ git pull
+
+1.4 使用git操作GitHub     返回顶部
+　　1、登录https://github.com 创建一个github项
+
+                
+
+ 　　2、选择创建一个新项目，还是将本地的项目推到github这个项目里
+
+                
+
+　　3、将本地已有的项目上传到GitHub中
+
+　　　　1）这里我们选择使用HTTPS的方法，讲本地已有项目提交到GitHub中
+　　　　2）在本地Git对应的项目下执行这条命令，配置，将以后的内容提交到这个路径下即：GitHub对应的项目中
+
+　　　　　　git remote add origin https://github.com/Tom7481079/s15_proj.git                    #设置代码提交url路径
+　　　　　　git remote rm origin                                                                                             # 删除设置的代码提交url路径
+
+　　　　3）将本地的项目推到GitHub中（需要输入GitHub网站的用户名和密码）
+　　　　　　git push -u origin master                                                                                     # 将本地代码push到GitHub中
+
+　　　　4）然后刷新页面即可在网页中看到我们本地的项目上传成功了
+
+ 　　4、GitHub中文件与本地项目不一致时上传到GitHub报错解决方法
+
+　　　　方法一：使用强制push的方法，这样会使远程修改丢失，一般是不可取的，尤其是多人协作开发的时候。
+
+　　　　　　　　git push -u origin master -f
+
+　　　　方法二：push前先将远程repository修改pull下来
+
+　　　　　　　　git pull origin master                                 # 先将GitHub中的文件下载到本地
+　　　　　　　　git push -u origin master                           # 然后在push到GitHub中
+
+　　　　　　　　注：执行git pull是如果只有GitHub中修改，会自动合并，如果本地也有修改必须手动合并才能正常git push
+
+　　　　方法三：若不想merge远程和本地修改，可以先创建新的分支：
+
+　　　　　　　　git branch [name]                                      # 新建一个分支
+　　　　　　　　git push -u origin [name]                           # 提交到分支中
+
+1.5 配置win10当前用户对GitHub所有项目有权限（git push不必输入密码）     返回顶部
+　　1、使用命令生成公钥和私钥（在git命令行中执行）
+
+　　　　　　ssh-keygen.exe               #生成一对公钥和私钥
+　　　　　　C:\Users\tom\.ssh           #这里是生成的秘钥地址
+
+　　2、将公钥上传到GitHub中
+
+　　　　1. 第一步
+
+                     
+
+ 
+
+ 　　　　2. 第二步
+
+                   
+
+　　　　3. 第三步
+
+                     
+
+ 
+
+　　　　4. 第四步
+
+                  
+
+　　3. 更改本地push方式为ssh
+
+　　　　1. 配置完公钥后还需要将GitHub项目的push方式改成ssh
+
+                    
+
+ 
+
+　　　　2. 更改本地push方式为ssh
+
+　　　　　　1） vim .git/config
+　　　　　　2） 将已有的https的路径替换成ssh模式，即上面复制的地址
+　　　　　　　　#url = https://github.com/Tom7481079/s15_proj.git
+　　　　　　　　url = git@github.com:Tom7481079/s15_proj.git
+
+　　　　3、此时再执行品push命令时就不会再让输入用户名和密码了
+
+　　　　　　　　git push origin master
+
+1.6 配置Linux当前用户对GitHub指定项目有权限（git push不必输入密码）     返回顶部
+　　1、在centos系统中创建密钥对
+
+　　　　　　ssh-keygen                               #给当前用户创建公钥私钥
+　　　　　　vim ~/.ssh/id_rsa.pub               #将当前用户公钥放到GitHub对应项目中
+
+　　2、将生成的公钥放到GitHub指定项目中
+
+　　　　1、打开指定项目的settings配置
+
+                     
+
+　　　　2、选中这个
+
+                    
+
+　　　　3、点击： “Add deploy key” 并粘贴密钥
+
+                     
+
+1.7 git分支管理（创建&amp;合并分支）     返回顶部
+　　1、分支管理的作用
+
+　　　　　　1、假设你准备开发一个新功能，但是需要两周才能完成，第一周你写了50%的代码，如果立刻提交，由于代码
+　　　　　　     还没写完，不完整的代码库会导致别人不能干活了
+　　　　　　2、如果等代码全部写完再一次提交，又存在丢失每天进度的巨大风险。
+　　　　　　3、现在有了分支，你创建了一个属于你自己的分支，别人看不到，还继续在原来的分支上正常工作
+　　　　　　4、而你在自己的分支上干活，想提交就提交，直到开发完毕后，再一次性合并到原来的分支上，这样，既安全，
+　　　　　　      又不影响别人工作
+　　　　　　5、    其他版本控制系统如SVN等都有分支管理，但是用过之后你会发现，这些版本控制系统创建和切换分支比蜗
+　　　　　　     牛还慢，简直让人无法忍受，结果分支功能成了摆设，大家都不去用
+　　　　　　6、    但Git的分支是与众不同的，无论创建、切换和删除分支，Git在1秒钟之内就能完成！无论你的版本库是1
+　　　　　　     个文件还是1万个文件
+
+　　2、分支管理-----创建分支
+
+　　　　　　git branch                              #查看现有分支
+　　　　　　git checkout -b dev               #创建并切换到分支dev， -b参数指切换dev分支
+　　　　　　git checkout master              #从dev分支切换到master
+　　　　　　git branch -D bug-101           #删除本地分支bug-101
+
+　　　　　　此时对项目进行修改
+　　　　　　git add .                                              #提交到舞台区
+　　　　　　git commit -m &quot;update readme&quot;         #提交到仓库
+　　　　　　git push origin dev                             #将跟新内容提交到分支dev中而不是master中
+
+　　3、如何将分支dev中的代码合并到主分支master中
+
+　　　　　　git checkout master                           #从dev分支切换到master
+　　　　　　git pull                                                #将master上的项目下载到本地
+　　　　　　git merge dev                                     #在master上执行这条命令，试图合并master和dev（报错，master更新了）
+
+　　　　　　vim Readme                                      #将不一致的地方手动合并
+　　　　　　git add .
+　　　　　　git push origin master                        #手动合并后就可以将dev分支上修改的东西上传到GitHub的master中了
+
+　　　　　　git log –graph                                     #查看从什么地方出现的分支
+
+　　4、分支取名规范
+
+　　　　　　1、方法1： 使用人名作为分支名（传统开发每个人负责一个功能模块）
+　　　　　　2、方法2： 根据功能模块设置分支名（如： feature-100 hotfix-99） 
+
+      5、全局dev分支（相当于上生产环境前的测试分支）
+
+　　　　　　1、master是不能再上面开发的（master必须是一个稳定版本）
+　　　　　　2、所以会有一个全局dev分支，这样就有三种，master,dev,和每个人自己的分支
+　　　　　　3、只有在全局dev中没问题后才会真正pull到master中
+
+1.8 git stash (bug分支)     返回顶部
+　　1、git stash 使用场景
+
+　　　　　　1、当正在其它分支写代码时突然有一个在master上发现一个bug需要立刻修改
+　　　　　　2、这时当然你可以将正在修改的内容先提交到自己的分支中再切换到bug分支，但比较麻烦
+　　　　　　3、这里就可以执行git stash 命令可以将现在这个状态临时保存起来
+
+　　2、git stash使用
+
+　　　　1、在dev工作区正在写东西，突然有个bug需要立刻修改
+
+　　　　　　　　vim Readme              #突然出现了一个bug
+　　　　　　　　git stash                     #将dev中未保存的文件放到一个临时区（以免带到了bug分支中）
+
+　　　　2、切换到bug-100分支，修复bug，并提交到本地仓库
+
+　　　　　　　　git checkout -b bug-100                   #创建并切换到bug-100分支
+　　　　　　　　vim Readme                                    #在bug-100分支中修复bug
+　　　　　　　　git add .                                            #将修改内容保存到bug-100分支的舞台区
+　　　　　　　　git commit -m 'commit-100-bug'      #提交到仓库
+
+　　　　3、切换到master合并bug-100并提交到GitHub
+
+　　　　　　　　git checkout master             #切换到master
+　　　　　　　　git merge bug-100               #合并master和bug-100分支
+　　　　　　　　git push origin master          #将修改后的内容推送到GitHub上（即可更新master）
+
+　　　　4、再次切换到dev分支，恢复以前的状态
+
+　　　　　　　　git checkout dev                 #再次切换到dev分支
+　　　　　　　　git status                            #dev分支的工作区没有东西
+　　　　　　　　more Readme                    #发现以前在dev工作区正在修改未提交到本地仓库的东西没有了
+　　　　　　　　git stash list                       #查看使用git stash 临时保存的文件
+　　　　　　　　git stash apply                   #恢复上次使用git stash 临时保存的文件
+　　　　　　　　git status                            #可以看到又回到了，切换到bug-100分支前的修改状态了
+
+　　　　5、git stash的其他操作
+
+　　　　　　　　git stash drop                        #删除最久的那个使用git stash 保存的临时状态
+　　　　　　　　git stash apply stash@{0}     #指定恢复到那个临时状态
+　　　　　　　　git stash pop                         #恢复并删除上一个临时状态
+
+　　　　　　　　注1：git stash apply恢复，恢复后，stash内容并不删除，你需要使用命令git stash drop来删除
+　　　　　　　　注2：另一种方式是使用git stash pop,恢复的同时把stash内容也删除了。
+
+1.9 多人协作开发      返回顶部
+　　1、第一步：在win10中clone GitHub中的项目并创建dev分支
+
+ 在win10中clone项目，并创建dev分支
+　　2、第二步：在Linux中也clone GitHub中的项目，创建dev分支，修改后提交到GitHub master中
+
+ 在Linux中clone项目，修改并提交代码
+　　3、第三步：win10中在别人已经提交代码后自己提交，解决合并冲突
+
+ win10中提交代码时会出现合并冲突，解决方法
+1.10 vim .gitignore (指定那些文件不需要git管理)     返回顶部
+　　1、说明
+
+　　　　1） 注： 如果某个文件，目录已经被上传到GitHub中了，再添加到.gitignore文件中是没有作用的。
+　　　　2）  比如core/test1.py以前没有将/core写到.gitignore文件中，但是后来添加了
+　　　　3）  那么之后对core/test1.py修改依然会改变，但是如果添加core/test2.py是不会出现在GitHub中的
+　　　　4）  GitHub中有各个语言忽略文件模板网址：https://github.com/github/gitignore
+
+　　2、python中指定忽略的文件
+
+ python中指定忽略的文件
+1.11 Git基本常用命令     返回顶部
+ Git基本常用命令
+1.12 删除GitHub中创建的项目     返回顶部
+　　1．打开要删除的项目
+
+          
+
+　　2．点击对应项目的settings
+
+          
+
+　　3. 点击右侧菜单的option(默认就是)，拉取到最后点击删除按钮
+
+          
+
+　　4．为了安全执行时会弹窗这个提示框
+
+          
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>用matplotlib统计数据并画图</title>
+			<link>/posts/j5/</link>
+			<pubDate>Fri, 08 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j5/</guid>
+			<description> 用matplotlib统计数据并画图 import numpy as np import pandas as pd import matplotlib.pyplot as plt import matplotlib %matplotlib inline matplotlib.rcParams[&#39;font.sans-serif&#39;] = [&#39;SimHei&#39;] data = pd.read_csv(&#39;tips.csv&#39;) result = data[&#39;sex&#39;].value_counts() # result.plot(kind=&#39;bar&#39;,color=[&#39;red&#39;,&#39;blue&#39;]) people_count = [100,200,300,400,500] plt.figure() #出事化一个画布 plt.subplot(2,2,1) #绘制位置 plt.bar(range(5),height=people_count,color=[&#39;red&#39;,&#39;pink&#39;,&#39;blue&#39;,&#39;green&#39;,&#39;red&#39;]) plt.xticks(range(5),[&#39;A&#39;,&#39;B&#39;,&#39;C&#39;,&#39;D&#39;,&#39;E&#39;]) plt.xlabel(&#39;专业名称&#39;) plt.ylabel(&#39;数量&#39;) plt.title(&#39;专业信息&#39;) plt.plot(people_count,color=&#39;red&#39;) #线图 plt.subplot(2,2,4) plt.pie(people_count,labels=[&#39;A&#39;,&#39;B&#39;,&#39;C&#39;,&#39;D&#39;,&#39;E&#39;],autopct=&#39;%1.1f%%&#39;)  </description>
+			<content type="html"><![CDATA[
+
+<h1 id="用matplotlib统计数据并画图">用matplotlib统计数据并画图</h1>
+
+<pre><code>import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib
+
+%matplotlib inline
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+data = pd.read_csv('tips.csv')
+result = data['sex'].value_counts()
+# result.plot(kind='bar',color=['red','blue'])
+
+people_count = [100,200,300,400,500]
+plt.figure() #出事化一个画布
+plt.subplot(2,2,1) #绘制位置
+plt.bar(range(5),height=people_count,color=['red','pink','blue','green','red'])
+plt.xticks(range(5),['A','B','C','D','E'])
+plt.xlabel('专业名称')
+plt.ylabel('数量')
+plt.title('专业信息')
+plt.plot(people_count,color='red') #线图
+
+plt.subplot(2,2,4)
+plt.pie(people_count,labels=['A','B','C','D','E'],autopct='%1.1f%%')
+</code></pre>
+]]></content>
+		</item>
+		
+		<item>
+			<title>numpy</title>
+			<link>/posts/j4/</link>
+			<pubDate>Thu, 07 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j4/</guid>
+			<description>Pandas 模糊匹配 主要用到的工具：Pandas 、fuzzywuzzy Pandas:是基于numpy的一种工具，专门为分析大量数据而生，它包含大量的处理数据的函数和方法，
+以下为pandas中文API: 缩写和包导入 在这个速查手册中，我们使用如下缩写：
+df：任意的Pandas DataFrame对象 s：任意的Pandas Series对象
+同时我们需要做如下的引入：
+import pandas as pd import numpy as np
+导入数据 pd.read_csv(filename)：从CSV文件导入数据 pd.read_table(filename)：从限定分隔符的文本文件导入数据 pd.read_excel(filename)：从Excel文件导入数据 pd.read_sql(query, connection_object)：从SQL表/库导入数据 pd.read_json(json_string)：从JSON格式的字符串导入数据 pd.read_html(url)：解析URL、字符串或者HTML文件，抽取其中的tables表格 pd.read_clipboard()：从你的粘贴板获取内容，并传给read_table() pd.DataFrame(dict)：从字典对象导入数据，Key是列名，Value是数据 导出数据 df.to_csv(filename)：导出数据到CSV文件
+df.to_excel(filename)：导出数据到Excel文件
+df.to_sql(table_name, connection_object)：导出数据到SQL表
+df.to_json(filename)：以Json格式导出数据到文本文件
+创建测试对象 np.c[ ]行合并 np.r[ ] 列合并 df.as_matrix() 将pandas 转化成np.array pd.DataFrame(np.random.rand(20,5))：创建20行5列的随机数组成的DataFrame对象 pd.Series(my_list)：从可迭代对象my_list创建一个Series对象 df.index = pd.date_range(&amp;lsquo;1900/1/30&amp;rsquo;, periods=df.shape[0])：增加一个日期索引 查看、检查数据 df.head(n)：查看DataFrame对象的前n行 df.tail(n)：查看DataFrame对象的最后n行 df.shape()：查看行数和列数 df.info()：查看索引、数据类型和内存信息 df.describe()：查看数值型列的汇总统计 s.value_counts(dropna=False)：查看Series对象的唯一值和计数 df.apply(pd.Series.value_counts)：查看DataFrame对象中每一列的唯一值和计数 数据选取 df[col]：根据列名，并以Series的形式返回列 df[[col1, col2]]：以DataFrame形式返回多列 s.iloc[0]：按位置选取数据 s.loc[&amp;lsquo;index_one&amp;rsquo;]：按索引选取数据 df.iloc[0,:]：返回第一行 df.iloc[0,0]：返回第一列的第一个元素 df.values[:,:-1]:返回除了最后一列的其他列的所以数据 df.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="pandas-模糊匹配">Pandas 模糊匹配</h1>
+
+<p>主要用到的工具：Pandas 、fuzzywuzzy
+Pandas:是基于numpy的一种工具，专门为分析大量数据而生，它包含大量的处理数据的函数和方法，</p>
+
+<p>以下为pandas中文API:
+缩写和包导入
+在这个速查手册中，我们使用如下缩写：</p>
+
+<p>df：任意的Pandas DataFrame对象
+s：任意的Pandas Series对象</p>
+
+<p>同时我们需要做如下的引入：</p>
+
+<p>import pandas as pd
+import numpy as np</p>
+
+<p>导入数据
+pd.read_csv(filename)：从CSV文件导入数据
+pd.read_table(filename)：从限定分隔符的文本文件导入数据
+pd.read_excel(filename)：从Excel文件导入数据
+pd.read_sql(query, connection_object)：从SQL表/库导入数据
+pd.read_json(json_string)：从JSON格式的字符串导入数据
+pd.read_html(url)：解析URL、字符串或者HTML文件，抽取其中的tables表格
+pd.read_clipboard()：从你的粘贴板获取内容，并传给read_table()
+pd.DataFrame(dict)：从字典对象导入数据，Key是列名，Value是数据
+导出数据
+df.to_csv(filename)：导出数据到CSV文件</p>
+
+<p>df.to_excel(filename)：导出数据到Excel文件</p>
+
+<p>df.to_sql(table_name, connection_object)：导出数据到SQL表</p>
+
+<p>df.to_json(filename)：以Json格式导出数据到文本文件</p>
+
+<p>创建测试对象
+np.c<em>[ ]行合并  np.r</em>[ ]  列合并
+df.as_matrix()  将pandas 转化成np.array
+pd.DataFrame(np.random.rand(20,5))：创建20行5列的随机数组成的DataFrame对象
+pd.Series(my_list)：从可迭代对象my_list创建一个Series对象
+df.index = pd.date_range(&lsquo;1900/1/30&rsquo;, periods=df.shape[0])：增加一个日期索引
+查看、检查数据
+df.head(n)：查看DataFrame对象的前n行
+df.tail(n)：查看DataFrame对象的最后n行
+df.shape()：查看行数和列数
+df.info()：查看索引、数据类型和内存信息
+df.describe()：查看数值型列的汇总统计
+s.value_counts(dropna=False)：查看Series对象的唯一值和计数
+df.apply(pd.Series.value_counts)：查看DataFrame对象中每一列的唯一值和计数
+数据选取
+df[col]：根据列名，并以Series的形式返回列
+df[[col1, col2]]：以DataFrame形式返回多列
+s.iloc[0]：按位置选取数据
+s.loc[&lsquo;index_one&rsquo;]：按索引选取数据
+df.iloc[0,:]：返回第一行
+df.iloc[0,0]：返回第一列的第一个元素
+df.values[:,:-1]:返回除了最后一列的其他列的所以数据
+df.query(&rsquo;[1, 2] not in c&rsquo;): 返回c列中不包含1，2的其他数据集
+数据清理
+df.columns = [&lsquo;a&rsquo;,&lsquo;b&rsquo;,&lsquo;c&rsquo;]：重命名列名
+pd.isnull()：检查DataFrame对象中的空值，并返回一个Boolean数组
+pd.notnull()：检查DataFrame对象中的非空值，并返回一个Boolean数组
+df.dropna()：删除所有包含空值的行
+df.dropna(axis=1)：删除所有包含空值的列
+df.dropna(axis=1,thresh=n)：删除所有小于n个非空值的行
+df.fillna(x)：用x替换DataFrame对象中所有的空值
+s.astype(float)：将Series中的数据类型更改为float类型
+s.replace(1,&lsquo;one&rsquo;)：用‘one’代替所有等于1的值
+s.replace([1,3],[&lsquo;one&rsquo;,&lsquo;three&rsquo;])：用&rsquo;one&rsquo;代替1，用&rsquo;three&rsquo;代替3
+df.rename(columns=lambda x: x + 1)：批量更改列名
+df.rename(columns={&lsquo;old<em>name&rsquo;: &lsquo;new</em> name&rsquo;})：选择性更改列名
+df.set_index(&lsquo;column_one&rsquo;)：更改索引列
+df.rename(index=lambda x: x + 1)：批量重命名索引
+数据处理：Filter、Sort和GroupBy
+df[df[col] &gt; 0.5]：选择col列的值大于0.5的行</p>
+
+<p>df.sort_values(col1)：按照列col1排序数据，默认升序排列</p>
+
+<p>df.sort_values(col2, ascending=False)：按照列col1降序排列数据</p>
+
+<p>df.sort_values([col1,col2], ascending=[True,False])：先按列col1升序排列，后按col2降序排列数据</p>
+
+<p>df.groupby(col)：返回一个按列col进行分组的Groupby对象</p>
+
+<p>df.groupby([col1,col2])：返回一个按多列进行分组的Groupby对象</p>
+
+<p>df.groupby(col1)[col2]：返回按列col1进行分组后，列col2的均值</p>
+
+<p>df.pivot_table(index=col1, values=[col2,col3], aggfunc=max)：创建一个按列col1进行分组，并计算col2和col3的最大值的数据透视表</p>
+
+<p>df.groupby(col1).agg(np.mean)：返回按列col1分组的所有列的均值</p>
+
+<p>data.apply(np.mean)：对DataFrame中的每一列应用函数np.mean</p>
+
+<p>data.apply(np.max,axis=1)：对DataFrame中的每一行应用函数np.max</p>
+
+<p>数据合并
+df1.append(df2)：将df2中的行添加到df1的尾部
+df.concat([df1, df2],axis=1)：将df2中的列添加到df1的尾部
+df1.join(df2,on=col1,how=&lsquo;inner&rsquo;)：对df1的列和df2的列执行SQL形式的join
+数据统计
+df.describe()：查看数据值列的汇总统计</p>
+
+<p>df.mean()：返回所有列的均值</p>
+
+<p>df.corr()：返回列与列之间的相关系数</p>
+
+<p>df.count()：返回每一列中的非空值的个数</p>
+
+<p>df.max()：返回每一列的最大值</p>
+
+<p>df.min()：返回每一列的最小值</p>
+
+<p>df.median()：返回每一列的中位数</p>
+
+<p>df.std()：返回每一列的标准差</p>
+
+<p>pandas  中 字段的模糊匹配 加正则</p>
+
+<p>排序</p>
+
+<hr />
+
+<p>标准的正态分布
+var= 0  方差
+Std=1  标准差
+sort_values ()按照值
+Sort_index() 按照索引排序</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>numpy</title>
+			<link>/posts/j3/</link>
+			<pubDate>Tue, 05 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j3/</guid>
+			<description>Numpy：提供了一个在Python中做科学计算的基础库，重在数值计算，主要用于多维数组（矩阵）处理的库。用来存储和处理大型矩阵，比Python自身的嵌套列表结构要高效的多。本身是由C语言开发，是个很基础的扩展， Python其余的科学计算扩展大部分都是以此为基础。 ndarray 多维数组 NumPy数组是一个多维的数组对象（矩阵），称为 ndarray ，具有矢量算术运算能力和复杂的广播能力，并具有 执行速度快和节省空间的特点。 注意：ndarray的下标从0开始，且数组里的所有元素必须是相同类型 性能对比 *****RESULT numpy的向量化运算的效率要远远高于python的循环遍历运算（效率相差好几百倍） *****END 创建数组 Method-1:基于list和tuple import numpy as np def pySum(): a = list(range(10000)) b = list(range(10000)) c = [] for i in range(len(a)): c.append(a[i]2 + b[i]2) return c %timeit pySum() #&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;ndash;</description>
+			<content type="html"><![CDATA[<p>Numpy：提供了一个在Python中做科学计算的基础库，重在数值计算，主要用于多维数组（矩阵）处理的库。用来存储和处理大型矩阵，比Python自身的嵌套列表结构要高效的多。本身是由C语言开发，是个很基础的扩展，
+Python其余的科学计算扩展大部分都是以此为基础。
+ndarray 多维数组
+NumPy数组是一个多维的数组对象（矩阵），称为 ndarray ，具有矢量算术运算能力和复杂的广播能力，并具有
+执行速度快和节省空间的特点。
+注意：ndarray的下标从0开始，且数组里的所有元素必须是相同类型
+性能对比
+*****<strong><em>RESULT</em></strong>
+numpy的向量化运算的效率要远远高于python的循环遍历运算（效率相差好几百倍）
+*****<strong><em>END</em></strong>
+创建数组
+Method-1:基于list和tuple
+import numpy as np
+def pySum():
+a = list(range(10000))
+b = list(range(10000))
+c = []
+for i in range(len(a)):
+c.append(a[i]<strong>2 + b[i]</strong>2)
+return c
+%timeit pySum()
+#&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>几种编码工具的区别</title>
+			<link>/posts/j2/</link>
+			<pubDate>Sun, 03 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j2/</guid>
+			<description>Ndarray 和list 的转换，基本用法 array把list 转化成ndarray 1维矩阵的结果是（列表的长度，） Ndim 判断维度 Size 元素的数量大小 Dtype 元素的类型 Type 数据类型 Arr1.cumsum() 累加函数 横相加 Arr1.cumsum(axis=0) 竖着相加 Arr1.cumprod() 累乘
+Arr5 的输出结果
+Arr 6 的输出结果
+arr = np.arange(24) print(arr.reshape(3,8)) #可以正常打印，因为reshape有返回值 print(arr) #发现原数据未发生变化
+print(arr.resize(3,4)) #语法错误，打印为none，因为resize无返回值 #正确写法 arr.resize(3,4) #作用：修改原数据 print(arr)
+reshape与resize区别如下： 相同： 两者都可以修改矩阵维度。 不同： reshape不修改原数据； resize修改原数据；</description>
+			<content type="html"><![CDATA[
+
+<h1 id="ndarray-和list-的转换-基本用法">Ndarray 和list 的转换，基本用法</h1>
+
+<p>array把list 转化成ndarray
+1维矩阵的结果是（列表的长度，）
+Ndim  判断维度
+Size 元素的数量大小
+Dtype 元素的类型
+Type 数据类型
+Arr1.cumsum() 累加函数 横相加
+Arr1.cumsum(axis=0) 竖着相加
+Arr1.cumprod() 累乘</p>
+
+<p>Arr5 的输出结果</p>
+
+<p>Arr 6 的输出结果</p>
+
+<p>arr = np.arange(24)
+print(arr.reshape(3,8))  #可以正常打印，因为reshape有返回值
+print(arr)   #发现原数据未发生变化</p>
+
+<p>print(arr.resize(3,4))  #语法错误，打印为none，因为resize无返回值
+#正确写法
+arr.resize(3,4)  #作用：修改原数据
+print(arr)</p>
+
+<p>reshape与resize区别如下：
+相同：
+两者都可以修改矩阵维度。
+不同：
+reshape不修改原数据；
+resize修改原数据；</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>几种编码工具的区别</title>
+			<link>/posts/j1/</link>
+			<pubDate>Sat, 02 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/j1/</guid>
+			<description>几种编码工具的区别 Pycharm和Spyder是一种IDE（集成开发环境） 在这种环境下，可以方便可视化地进行代码程序编写工作‘在这种环境下，可以方便可视化地进行代码程序编写工作‘
+Anaconda是一个科学计算环境，当在电脑上安装好后，就相当于安装好了Python，还有一些常用的库，如numpy，scrip，matplotlib等库。
+Jupyter notebook 极其适合数据分析，支持多种语言。
+Jupyter lab 可以简单理解为notebook的升级版，功能更加舒适。</description>
+			<content type="html"><![CDATA[
+
+<h1 id="几种编码工具的区别">几种编码工具的区别</h1>
+
+<p>Pycharm和Spyder是一种IDE（集成开发环境） 　　
+在这种环境下，可以方便可视化地进行代码程序编写工作‘在这种环境下，可以方便可视化地进行代码程序编写工作‘</p>
+
+<p>Anaconda是一个科学计算环境，当在电脑上安装好后，就相当于安装好了Python，还有一些常用的库，如numpy，scrip，matplotlib等库。</p>
+
+<p>Jupyter notebook
+极其适合数据分析，支持多种语言。</p>
+
+<p>Jupyter lab
+可以简单理解为notebook的升级版，功能更加舒适。</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>jieba 分词</title>
+			<link>/posts/jieba/</link>
+			<pubDate>Fri, 01 Feb 2019 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/jieba/</guid>
+			<description>jieba分词 import jieba content = &#39;欢迎来到北京&#39; #全模式true ，精确模式 false， 和 搜索引擎模式 result = jieba.lcut(content,cut_all=True)#cut返回的是生成器，lcut返回的列表 print(result) result = jieba.lcut_for_search(content) print(result) #自定义分词库 jieba.load_userdict(&#39;myDcit.txt&#39;)  from wordcloud import WordCloud from matplotlib import pyplot as plt from PIL import Image import numpy as np #1 准备数据 f = open(&#39;豆瓣舌尖中国.txt&#39;,&#39;rb&#39;) content = f.read() result = jieba.lcut(content,cut_all=False) content = &#39; &#39;.join(result) #2 初始化词云图对象， pip install wordcloud background_img = np.array(Image.open(&#39;4c192d16b93f86a0c99c19a60aab733.jpg&#39;)) #加载图片生成高维数组 wc = WordCloud(background_color=&#39;white&#39;, font_path=&#39;C:\Windows\Fonts\SimHei.ttf&#39;, mask=background_img, #设置背景 max_font_size=150, max_words=100, #控制词的个数 stopwords={&amp;quot;食物&amp;quot;}, #删除词 ) word = wc.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="jieba分词">jieba分词</h1>
+
+<pre><code>import jieba
+
+content = '欢迎来到北京'
+#全模式true ，精确模式 false， 和  搜索引擎模式
+result = jieba.lcut(content,cut_all=True)#cut返回的是生成器，lcut返回的列表
+print(result)
+result = jieba.lcut_for_search(content)
+print(result)
+
+#自定义分词库
+jieba.load_userdict('myDcit.txt')
+</code></pre>
+
+<pre><code>from wordcloud import WordCloud
+from matplotlib import pyplot as plt
+from PIL import Image
+import numpy as np
+
+#1 准备数据
+f = open('豆瓣舌尖中国.txt','rb')
+content = f.read()
+result = jieba.lcut(content,cut_all=False)
+content = ' '.join(result)
+
+#2 初始化词云图对象， pip install wordcloud
+
+background_img = np.array(Image.open('4c192d16b93f86a0c99c19a60aab733.jpg')) #加载图片生成高维数组
+wc = WordCloud(background_color='white',
+               font_path='C:\Windows\Fonts\SimHei.ttf',
+               mask=background_img,  #设置背景
+               max_font_size=150,
+               max_words=100,  #控制词的个数
+               stopwords={&quot;食物&quot;}, #删除词
+              )
+
+word = wc.generate(content) #生成词云
+plt.imshow(word)
+plt.axis('off') #关闭坐标
+plt.show()
+
+</code></pre>
+]]></content>
+		</item>
 		
 		<item>
 			<title>django 简介</title>
@@ -1883,6 +6368,140 @@ driver.switch_to.frame(&ldquo;login_frame&rdquo;)
 driver.find_element_by_class_name(&lsquo;inputstyle&rsquo;).send_keys(&lsquo;账号&rsquo;)
 driver.find_element_by_name(&ldquo;p&rdquo;).send_keys(&lsquo;密码&rsquo;)
 driver.find_element_by_class_name(&lsquo;btn&rsquo;).click()</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis</title>
+			<link>/posts/scrapy21/</link>
+			<pubDate>Thu, 10 Aug 2017 00:00:00 +0000</pubDate>
+			
+			<guid>/posts/scrapy21/</guid>
+			<description>在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。 而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。 说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬 首先分别在主机和从机上安装需要的爬虫库 pip3 install requests scrapy scrapy-redis redis 在主机中安装redis #安装redis yum install redis 启动服务 systemctl start redis 查看版本号 redis-cli --version 设置开机启动 systemctl enable redis.service 修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口 #bind 127.0.0.1 protected-mode no 改完配置后，别忘了重启服务才能生效 systemctl restart redis 然后分别新建爬虫项目 scrapy startproject myspider 在项目的spiders目录下新建test.py #导包 import scrapy import os from scrapy_redis.spiders import RedisSpider #定义抓取类 #class Test(scrapy.Spider): class Test(RedisSpider): #定义爬虫名称，和命令行运行时的名称吻合 name = &amp;quot;test&amp;quot; #定义redis的key redis_key = &#39;test:start_urls&#39; #定义头部信息 haders = { &#39;User-Agent&#39;: &#39;Mozilla/5.</description>
+			<content type="html"><![CDATA[
+
+<h1 id="在阿里云centos7-6上面部署基于redis的分布式爬虫scrapy-redis">在阿里云Centos7.6上面部署基于redis的分布式爬虫scrapy-redis</h1>
+
+<pre><code>Scrapy是一个比较好用的Python爬虫框架，你只需要编写几个组件就可以实现网页数据的爬取。但是当我们要爬取的页面非常多的时候，单个服务器的处理能力就不能满足我们的需求了（无论是处理速度还是网络请求的并发数），这时候分布式爬虫的优势就显现出来。
+
+    而Scrapy-Redis则是一个基于Redis的Scrapy分布式组件。它利用Redis对用于爬取的请求(Requests)进行存储和调度(Schedule)，并对爬取产生的项目(items)存储以供后续处理使用。scrapy-redi重写了scrapy一些比较关键的代码，将scrapy变成一个可以在多个主机上同时运行的分布式爬虫。
+
+    
+
+    
+
+    说白了，就是使用redis来维护一个url队列,然后scrapy爬虫都连接这一个redis获取url,且当爬虫在redis处拿走了一个url后,redis会将这个url从队列中清除,保证不会被2个爬虫拿到同一个url,即使可能2个爬虫同时请求拿到同一个url,在返回结果的时候redis还会再做一次去重处理,所以这样就能达到分布式效果,我们拿一台主机做redis 队列,然后在其他主机上运行爬虫.且scrapy-redis会一直保持与redis的连接,所以即使当redis 队列中没有了url,爬虫会定时刷新请求,一旦当队列中有新的url后,爬虫就立即开始继续爬
+
+    首先分别在主机和从机上安装需要的爬虫库
+
+    
+
+pip3 install requests scrapy scrapy-redis redis
+
+在主机中安装redis
+
+
+
+#安装redis
+yum install redis
+
+启动服务
+systemctl start redis
+
+查看版本号
+redis-cli --version
+
+设置开机启动
+systemctl enable redis.service
+
+
+修改redis配置文件 vim /etc/redis.conf 将保护模式设为no，同时注释掉bind，为了可以远程访问,另外需要注意阿里云安全策略也需要暴露6379端口
+
+
+#bind 127.0.0.1
+protected-mode no
+
+改完配置后，别忘了重启服务才能生效
+
+
+systemctl restart redis
+
+然后分别新建爬虫项目
+
+
+scrapy startproject myspider
+在项目的spiders目录下新建test.py
+
+
+#导包
+import scrapy
+import os
+from scrapy_redis.spiders import RedisSpider
+
+#定义抓取类
+#class Test(scrapy.Spider):
+class Test(RedisSpider):
+
+    #定义爬虫名称，和命令行运行时的名称吻合
+    name = &quot;test&quot;
+
+    #定义redis的key
+    redis_key = 'test:start_urls'
+
+    #定义头部信息
+    haders = {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36'
+    }
+
+    def parse(self, response):
+        print(response.url)
+        pass
+
+然后修改配置文件settings.py，增加下面的配置,其中redis地址就是在主机中配置好的redis地址:
+
+
+BOT_NAME = 'myspider'
+
+SPIDER_MODULES = ['myspider.spiders']
+NEWSPIDER_MODULE = 'myspider.spiders'
+
+#设置中文编码
+FEED_EXPORT_ENCODING = 'utf-8'
+
+# scrapy-redis 主机地址
+REDIS_URL = 'redis://root@39.106.228.179:6379'
+#队列调度
+SCHEDULER = &quot;scrapy_redis.scheduler.Scheduler&quot;
+#不清除缓存
+SCHEDULER_PERSIST = True
+#通过redis去重
+DUPEFILTER_CLASS = &quot;scrapy_redis.dupefilter.RFPDupeFilter&quot;
+#不遵循robots
+ROBOTSTXT_OBEY = False
+
+最后，可以在两台主机上分别启动scrapy服务
+
+
+scrapy crawl test
+
+此时，服务已经起来了，只不过redis队列中没有任务，在等待状态
+
+进入主机的redis
+
+
+redis-cli
+
+将任务队列push进redis
+
+
+lpush test:start_urls http://baidu.com
+lpush test:start_urls http://chouti.com
+可以看到，两台服务器的爬虫服务分别领取了队列中的任务进行抓取，同时利用redis的特性，url不会重复抓取
+
+
+
+爬取任务结束之后，可以通过flushdb命令来清除地址指纹，这样就可以再次抓取历史地址了。
+</code></pre>
 ]]></content>
 		</item>
 		

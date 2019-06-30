@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离">
+<meta itemprop="description" content="#在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离
+在之前的一篇文章中，阐述了如何在高并发高负载的场景下使用nginx做后台服务的负载均衡:在阿里云Centos上配置nginx&#43;uwsgi&#43;负载均衡配置,但是不要以为这样做了就是一劳永逸的，到了数据业务层、数据访问层，如果还是传统的数据结构，或者只是单单靠一台服务器负载，如此多的数据库连接操作，数据库必然会崩溃，数据库如果宕机的话，后果更是不堪设想。这时候，我们会考虑如何减少数据库的连接，一方面采用优秀的代码框架，进行代码的优化，采用优秀的数据缓存技术如：redis,如果资金丰厚的话，必然会想到架设mysql服务集群，来分担主数据库的压力。今天总结一下利用MySQL主从配置，实现读写分离，减轻数据库压力。 明确目的，部署mysql集群，采用一主一从的策略，写入操作使用主库，从库实时同步主库的数据，从库负责读取的业务，从而完成读写分离的目的。 mysql主从同步的原理很简单，从库生成两个线程，一个I/O线程，一个SQL线程；i/o线程去请求主库 的binlog（二进制日志），并将得到的binlog日志写到relay log（中继日志） 文件中；主库会生成一个 log dump 线程，用来给从库 i/o线程传binlog； SQL 线程，会读取relay log文件中的日志，并解析成具体操作，来实现主从的操作一致，而最终数据一致。 首先准备两台阿里云服务器，一台作为主机(master)，一台作为从机(slave)，都安装好mysql5.7，具体怎样安装mysql服务请移步：https://v3u.cn/a_id_72 进入master服务器 修改mysql配置文件 vim /etc/my.cnf，加入如下配置 server-id=1 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-1 配置说明： #设置主服务 的ID (id可以自己随便设置但是要保证和slave的id不一样) server-id=1 #设为1当然是最安全的，但性能也是最差的（相对其他两个参数而言，但不是不能接受）。如果对数据一致性和完整性要求不高，完全可以设为2，如果只最求性能，例如高并发写的日志服务器，设为0来获得更高性能 innodb_flush_log_at_trx_commit=2 #开启binlog 志同步功能 sync_binlog=1 #binlog 日志文件名 log-bin=mysql-bin-200 # 这个表示只同步某个库 (如果没有此项，表示同步所有的库) binlog-do-db=xxxx 保存后，重启mysql systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入授权命令 GRANT REPLICATION SLAVE ON *.* to &#39;repl&#39;@&#39;%&#39; identified by &#39;Admin123!&#39;; 意思是所有slave都可以通过账号repl和密码Admin123!来同步master的数据 然后查看master的状态: show master status; 把file列和Position列记录下来，一会配置slave要用到 此时Master的配置已经搞定，登录一下从机(slave) 同理修改slave服务器的mysql配置 vim /etc/my.cnf 加入下面的配置，需要注意的是server-id不要和master一样 server-id=201 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-201 保存后重启服务 systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入命令： change master to master_host=&#39;39.">
+
+
+<meta itemprop="datePublished" content="2019-04-22T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-04-22T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="118">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离" />
+<meta property="og:description" content="#在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离
+在之前的一篇文章中，阐述了如何在高并发高负载的场景下使用nginx做后台服务的负载均衡:在阿里云Centos上配置nginx&#43;uwsgi&#43;负载均衡配置,但是不要以为这样做了就是一劳永逸的，到了数据业务层、数据访问层，如果还是传统的数据结构，或者只是单单靠一台服务器负载，如此多的数据库连接操作，数据库必然会崩溃，数据库如果宕机的话，后果更是不堪设想。这时候，我们会考虑如何减少数据库的连接，一方面采用优秀的代码框架，进行代码的优化，采用优秀的数据缓存技术如：redis,如果资金丰厚的话，必然会想到架设mysql服务集群，来分担主数据库的压力。今天总结一下利用MySQL主从配置，实现读写分离，减轻数据库压力。 明确目的，部署mysql集群，采用一主一从的策略，写入操作使用主库，从库实时同步主库的数据，从库负责读取的业务，从而完成读写分离的目的。 mysql主从同步的原理很简单，从库生成两个线程，一个I/O线程，一个SQL线程；i/o线程去请求主库 的binlog（二进制日志），并将得到的binlog日志写到relay log（中继日志） 文件中；主库会生成一个 log dump 线程，用来给从库 i/o线程传binlog； SQL 线程，会读取relay log文件中的日志，并解析成具体操作，来实现主从的操作一致，而最终数据一致。 首先准备两台阿里云服务器，一台作为主机(master)，一台作为从机(slave)，都安装好mysql5.7，具体怎样安装mysql服务请移步：https://v3u.cn/a_id_72 进入master服务器 修改mysql配置文件 vim /etc/my.cnf，加入如下配置 server-id=1 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-1 配置说明： #设置主服务 的ID (id可以自己随便设置但是要保证和slave的id不一样) server-id=1 #设为1当然是最安全的，但性能也是最差的（相对其他两个参数而言，但不是不能接受）。如果对数据一致性和完整性要求不高，完全可以设为2，如果只最求性能，例如高并发写的日志服务器，设为0来获得更高性能 innodb_flush_log_at_trx_commit=2 #开启binlog 志同步功能 sync_binlog=1 #binlog 日志文件名 log-bin=mysql-bin-200 # 这个表示只同步某个库 (如果没有此项，表示同步所有的库) binlog-do-db=xxxx 保存后，重启mysql systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入授权命令 GRANT REPLICATION SLAVE ON *.* to &#39;repl&#39;@&#39;%&#39; identified by &#39;Admin123!&#39;; 意思是所有slave都可以通过账号repl和密码Admin123!来同步master的数据 然后查看master的状态: show master status; 把file列和Position列记录下来，一会配置slave要用到 此时Master的配置已经搞定，登录一下从机(slave) 同理修改slave服务器的mysql配置 vim /etc/my.cnf 加入下面的配置，需要注意的是server-id不要和master一样 server-id=201 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-201 保存后重启服务 systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入命令： change master to master_host=&#39;39." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/a23/" />
+<meta property="article:published_time" content="2019-04-22T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-04-22T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离"/>
+<meta name="twitter:description" content="#在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离
+在之前的一篇文章中，阐述了如何在高并发高负载的场景下使用nginx做后台服务的负载均衡:在阿里云Centos上配置nginx&#43;uwsgi&#43;负载均衡配置,但是不要以为这样做了就是一劳永逸的，到了数据业务层、数据访问层，如果还是传统的数据结构，或者只是单单靠一台服务器负载，如此多的数据库连接操作，数据库必然会崩溃，数据库如果宕机的话，后果更是不堪设想。这时候，我们会考虑如何减少数据库的连接，一方面采用优秀的代码框架，进行代码的优化，采用优秀的数据缓存技术如：redis,如果资金丰厚的话，必然会想到架设mysql服务集群，来分担主数据库的压力。今天总结一下利用MySQL主从配置，实现读写分离，减轻数据库压力。 明确目的，部署mysql集群，采用一主一从的策略，写入操作使用主库，从库实时同步主库的数据，从库负责读取的业务，从而完成读写分离的目的。 mysql主从同步的原理很简单，从库生成两个线程，一个I/O线程，一个SQL线程；i/o线程去请求主库 的binlog（二进制日志），并将得到的binlog日志写到relay log（中继日志） 文件中；主库会生成一个 log dump 线程，用来给从库 i/o线程传binlog； SQL 线程，会读取relay log文件中的日志，并解析成具体操作，来实现主从的操作一致，而最终数据一致。 首先准备两台阿里云服务器，一台作为主机(master)，一台作为从机(slave)，都安装好mysql5.7，具体怎样安装mysql服务请移步：https://v3u.cn/a_id_72 进入master服务器 修改mysql配置文件 vim /etc/my.cnf，加入如下配置 server-id=1 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-1 配置说明： #设置主服务 的ID (id可以自己随便设置但是要保证和slave的id不一样) server-id=1 #设为1当然是最安全的，但性能也是最差的（相对其他两个参数而言，但不是不能接受）。如果对数据一致性和完整性要求不高，完全可以设为2，如果只最求性能，例如高并发写的日志服务器，设为0来获得更高性能 innodb_flush_log_at_trx_commit=2 #开启binlog 志同步功能 sync_binlog=1 #binlog 日志文件名 log-bin=mysql-bin-200 # 这个表示只同步某个库 (如果没有此项，表示同步所有的库) binlog-do-db=xxxx 保存后，重启mysql systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入授权命令 GRANT REPLICATION SLAVE ON *.* to &#39;repl&#39;@&#39;%&#39; identified by &#39;Admin123!&#39;; 意思是所有slave都可以通过账号repl和密码Admin123!来同步master的数据 然后查看master的状态: show master status; 把file列和Position列记录下来，一会配置slave要用到 此时Master的配置已经搞定，登录一下从机(slave) 同理修改slave服务器的mysql配置 vim /etc/my.cnf 加入下面的配置，需要注意的是server-id不要和master一样 server-id=201 innodb_flush_log_at_trx_commit=2 sync_binlog=1 log-bin=mysql-bin-201 保存后重启服务 systemctl restart mysqld 进入mysql命令行 mysql -uroot -p你的密码 输入命令： change master to master_host=&#39;39."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Apr 22, 2019</span></div>
+				<h1>在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离</h1>
+			</header>
+			<div class="content">
+				<p>#在阿里云Centos7.6上面配置Mysql主从数据库(master/slave)，实现读写分离</p>
+
+<pre><code>在之前的一篇文章中，阐述了如何在高并发高负载的场景下使用nginx做后台服务的负载均衡:在阿里云Centos上配置nginx+uwsgi+负载均衡配置,但是不要以为这样做了就是一劳永逸的，到了数据业务层、数据访问层，如果还是传统的数据结构，或者只是单单靠一台服务器负载，如此多的数据库连接操作，数据库必然会崩溃，数据库如果宕机的话，后果更是不堪设想。这时候，我们会考虑如何减少数据库的连接，一方面采用优秀的代码框架，进行代码的优化，采用优秀的数据缓存技术如：redis,如果资金丰厚的话，必然会想到架设mysql服务集群，来分担主数据库的压力。今天总结一下利用MySQL主从配置，实现读写分离，减轻数据库压力。
+
+    明确目的，部署mysql集群，采用一主一从的策略，写入操作使用主库，从库实时同步主库的数据，从库负责读取的业务，从而完成读写分离的目的。
+
+    mysql主从同步的原理很简单，从库生成两个线程，一个I/O线程，一个SQL线程；i/o线程去请求主库 的binlog（二进制日志），并将得到的binlog日志写到relay log（中继日志） 文件中；主库会生成一个 log dump 线程，用来给从库 i/o线程传binlog；
+
+    SQL 线程，会读取relay log文件中的日志，并解析成具体操作，来实现主从的操作一致，而最终数据一致。
+
+    
+
+    首先准备两台阿里云服务器，一台作为主机(master)，一台作为从机(slave)，都安装好mysql5.7，具体怎样安装mysql服务请移步：https://v3u.cn/a_id_72
+
+    进入master服务器
+
+    修改mysql配置文件 vim /etc/my.cnf，加入如下配置
+
+    
+
+server-id=1
+innodb_flush_log_at_trx_commit=2
+sync_binlog=1
+log-bin=mysql-bin-1
+
+    
+
+配置说明：
+
+#设置主服务 的ID (id可以自己随便设置但是要保证和slave的id不一样)
+server-id=1
+
+#设为1当然是最安全的，但性能也是最差的（相对其他两个参数而言，但不是不能接受）。如果对数据一致性和完整性要求不高，完全可以设为2，如果只最求性能，例如高并发写的日志服务器，设为0来获得更高性能
+innodb_flush_log_at_trx_commit=2
+
+#开启binlog 志同步功能
+sync_binlog=1 
+
+#binlog 日志文件名
+log-bin=mysql-bin-200 
+
+# 这个表示只同步某个库 (如果没有此项，表示同步所有的库)
+binlog-do-db=xxxx 
+
+保存后，重启mysql
+
+
+systemctl restart mysqld
+进入mysql命令行 mysql -uroot -p你的密码
+
+输入授权命令
+
+
+GRANT REPLICATION SLAVE ON *.* to 'repl'@'%' identified by 'Admin123!'; 
+
+意思是所有slave都可以通过账号repl和密码Admin123!来同步master的数据
+
+然后查看master的状态:
+
+
+show master status;
+
+
+
+把file列和Position列记录下来，一会配置slave要用到
+
+
+此时Master的配置已经搞定，登录一下从机(slave)
+
+同理修改slave服务器的mysql配置 vim /etc/my.cnf 加入下面的配置，需要注意的是server-id不要和master一样
+
+
+server-id=201 
+innodb_flush_log_at_trx_commit=2 
+sync_binlog=1 
+log-bin=mysql-bin-201
+保存后重启服务 systemctl restart mysqld
+
+
+进入mysql命令行 mysql -uroot -p你的密码
+
+输入命令：
+
+
+change master to master_host='39.106.228.179',master_user='repl' ,master_password='Admin123!', master_log_file='mysql-bin.000002' ,master_log_pos=154
+命令说明：
+
+master_host: 主机的ip
+
+master_user : 主机授权的用户.
+
+master_password : 主机授权时候填写的密码
+
+master_log_file : 主机show master status;中的File
+
+master_log_pos: 主机show master status;中的Position.
+
+输入命令启动slave
+
+
+start slave; 可以查看slave的状态:
+
+
+show slave status G;
+然后我们就可以测试一下对master进行写入，看看salve是否可以同步数据了
+
+
+
+
+当然了，mysql的读写分离主从配置并不是万能的，根据不同的应用场景选择不同的策略，MySQL的主从复制功能有一定的延迟性，如果对数据实时一致性的要求比较高的场景不推荐使用。
+</code></pre>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>118 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-04-22 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/a24/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>在Centos下使用Siege对Django服务进行压力测试</span>
+			</a>
+			<a class="prev-post" href="/posts/a16/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Django通过xlwt用文件流的方式下载excel文档</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

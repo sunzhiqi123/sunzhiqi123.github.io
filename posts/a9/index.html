@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="zabbix-agent安装配置 及 web界面管理">
+<meta itemprop="description" content="zabbix-agent安装配置 及 web界面管理 1、安装zabbix-agent
+　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix
+　2. 找到清华大学镜像源找到对应版本的agent：https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/
+　3. 安装：rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm
+　2、修改agent配置文件
+复制代码 vim /etc/zabbix/zabbix_agentd.conf Server=1.1.1.5
+开启zabbix-agent： systemctl start zabbix-agent 查看agent状态：systemctl status zabbix-agent
+查看agent是否监听端口：netstat -lntp 查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log 复制代码 3、自定义key（查看当前登录终端个数）
+　1. linux中查看当前终端登录用户个数
+复制代码 [root@redis ~]# w 16:28:25 up 42 min, 2 users, load average: 0.00, 0.03, 0.05 USER TTY FROM LOGIN@ IDLE JCPU PCPU WHAT root pts/0 1.1.1.100 15:47 1.00s 0.">
+
+
+<meta itemprop="datePublished" content="2019-02-17T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-02-17T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="230">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="zabbix-agent安装配置 及 web界面管理" />
+<meta property="og:description" content="zabbix-agent安装配置 及 web界面管理 1、安装zabbix-agent
+　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix
+　2. 找到清华大学镜像源找到对应版本的agent：https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/
+　3. 安装：rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm
+　2、修改agent配置文件
+复制代码 vim /etc/zabbix/zabbix_agentd.conf Server=1.1.1.5
+开启zabbix-agent： systemctl start zabbix-agent 查看agent状态：systemctl status zabbix-agent
+查看agent是否监听端口：netstat -lntp 查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log 复制代码 3、自定义key（查看当前登录终端个数）
+　1. linux中查看当前终端登录用户个数
+复制代码 [root@redis ~]# w 16:28:25 up 42 min, 2 users, load average: 0.00, 0.03, 0.05 USER TTY FROM LOGIN@ IDLE JCPU PCPU WHAT root pts/0 1.1.1.100 15:47 1.00s 0." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/a9/" />
+<meta property="article:published_time" content="2019-02-17T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-02-17T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="zabbix-agent安装配置 及 web界面管理"/>
+<meta name="twitter:description" content="zabbix-agent安装配置 及 web界面管理 1、安装zabbix-agent
+　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix
+　2. 找到清华大学镜像源找到对应版本的agent：https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/
+　3. 安装：rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm
+　2、修改agent配置文件
+复制代码 vim /etc/zabbix/zabbix_agentd.conf Server=1.1.1.5
+开启zabbix-agent： systemctl start zabbix-agent 查看agent状态：systemctl status zabbix-agent
+查看agent是否监听端口：netstat -lntp 查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log 复制代码 3、自定义key（查看当前登录终端个数）
+　1. linux中查看当前终端登录用户个数
+复制代码 [root@redis ~]# w 16:28:25 up 42 min, 2 users, load average: 0.00, 0.03, 0.05 USER TTY FROM LOGIN@ IDLE JCPU PCPU WHAT root pts/0 1.1.1.100 15:47 1.00s 0."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>zabbix-agent安装配置 及 web界面管理</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 17, 2019</span></div>
+				<h1>zabbix-agent安装配置 及 web界面管理</h1>
+			</header>
+			<div class="content">
+				
+
+<h1 id="zabbix-agent安装配置-及-web界面管理">zabbix-agent安装配置 及 web界面管理<a href="#zabbix-agent安装配置-及-web界面管理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>1、安装zabbix-agent</p>
+
+<p>　　　　　　1. 到server端查看安装的zabbix版本以安装对应agent版本：rpm -qa|grep zabbix</p>
+
+<p>　　　　　　2. 找到清华大学镜像源找到对应版本的agent：<a href="https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/">https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/</a></p>
+
+<p>　　　　　　3. 安装：rpm -ivh <a href="https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm">https://mirrors.tuna.tsinghua.edu.cn/zabbix/zabbix/3.4/rhel/7/x86_64/zabbix-agent-3.4.9-1.el7.x86_64.rpm</a></p>
+
+<p>　　2、修改agent配置文件</p>
+
+<p>复制代码
+vim /etc/zabbix/zabbix_agentd.conf
+Server=1.1.1.5</p>
+
+<p>开启zabbix-agent： systemctl start zabbix-agent
+查看agent状态：systemctl status zabbix-agent<br />
+查看agent是否监听端口：netstat -lntp
+查看zabbix_agent 日志：tail -f /var/log/zabbix/zabbix_agentd.log
+复制代码
+　　3、自定义key（查看当前登录终端个数）</p>
+
+<p>　　　　1. linux中查看当前终端登录用户个数</p>
+
+<p>复制代码
+[root@redis ~]# w
+ 16:28:25 up 42 min,  2 users,  load average: 0.00, 0.03, 0.05
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+root     pts/0    1.1.1.100        15:47    1.00s  0.24s  0.00s w</p>
+
+<p>[root@redis ~]# w|awk &lsquo;NR==1{print $6}&rsquo;                  # 获取当前登录用户数量（法1）
+2
+  [root@redis ~]# w|awk -F &lsquo;,&rsquo; &lsquo;NR==1{print $2}&rsquo;|awk &lsquo;NR==1{print $1}&rsquo;    # 获取当前登录用户数量（法2）</p>
+
+<p>2</p>
+
+<p>复制代码
+　　　　2. 查看w命令绝对路径</p>
+
+<p>[root@redis ~]# which w
+/usr/bin/w
+　　　　3. 修改zabbix-agent配置文件 zabbix_agentd.conf  添加key</p>
+
+<p>vim /etc/zabbix/zabbix_agentd.conf                           # 添加下面这条
+UserParameter=log_user, /usr/bin/w|awk &lsquo;NR==1{print $6}&rsquo;</p>
+
+<p>systemctl restart zabbix-agent                               # 重启agent
+　　　　4. 在server上get上面配置key的值</p>
+
+<p>yum -y install zabbix-get                   # 在server安装zabbix-get工具
+zabbix_get -s 1.1.1.3 -p10050 -k log_user   # 在server端运行命令测试是否可以获取到
+　　　　5. 在server端可以获取到key值后即可 新建 &ldquo;监控项&rdquo; 使用key了　　</p>
+
+<p>　　　　　　</p>
+
+<p>1.2 根据host创建 应用集、监控项、触发器(块速开始)     返回顶部
+　　登录地址：　<a href="http://1.1.1.5/zabbix/zabbix.php?action=dashboard.view">http://1.1.1.5/zabbix/zabbix.php?action=dashboard.view</a></p>
+
+<p>　　1、登陆和配置用户</p>
+
+<p>　　　　　　管理（Administration） → 用户（Users） → 创建用户</p>
+
+<p>　　2、 新建主机</p>
+
+<p>　　　　　　</p>
+
+<p>　　3、新建应用集</p>
+
+<p>　　　　　　</p>
+
+<p>　　4、新建监控项</p>
+
+<p>　　　　　　说明：监控项是Zabbix中获得数据的基础。没有监控项，就没有数据——因为一个主机中只有监控项定义了单一的指标或者需要获得的数据。　　　</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　名称（Name）：在列表中和其他地方，都会显示这个值作为监控项名称。</p>
+
+<p>　　　　　　值（Key）：这是监控项的一个技术上的名称，用于识别获取信息的类型。这个特定值需要是Zabbix Agent预定义值重的一种。</p>
+
+<p>　　　　　　信息类型（Type of information）：这个属性定义了想获得数据的格式</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　</p>
+
+<p>　　5、新建触发器</p>
+
+<p>　　　　1. 触发器定义</p>
+
+<p>　　　　　　1. 监控项只是用于收集数据。如果需要自动评估收到的数据，我们则需要定义触发器。
+　　　　　　2. 触发器包含了一个表达式，这个表达式定义了数据的可接受的阈值级别
+　　　　　　3.如果收到的数据超过了这个定义好的级别，触发器将被“触发”，让我们知道有问题发生。
+　　　　　　4. 如果数据再次恢复到合理的范围，触发器将会到“正常（Ok）”状态。</p>
+
+<p>　　　　2. 添加触发器</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　</p>
+
+<p>　　　　　　</p>
+
+<p>1.3 根据模板创建 应用集、监控项、触发器     返回顶部
+　　1、模板作用 　</p>
+
+<p>　　　　　　1. 我们在之前的章节中学会了如何配置监控项、触发器，以及如果从主机上获得问题的通知。
+　　　　　　2. 虽然这些步骤提供了很大的灵活性，但仍然需要很多步骤才能完成。如果我们需要配置上千台主机，一些自动化操作会带来更多便利性。
+　　　　　　3. 模版（templates）功能可以实现这一点。模版允许对有用的监控项、触发器和其他对象进行分组，只需要一步就可以对监控主机应用模版，以达到反复重用的目的。
+　　　　　　4. 当一个模版链接到一个主机后，主机会继承这个模版中的所有对象。简单而言，一组预先定义好的检查会被快速应用到主机上。</p>
+
+<p>　　2、创建模板</p>
+
+<p>　　　　　　配置（Configuration） → 模版（Templates）中，点击创建模版（Create template）</p>
+
+<p>　　　　　　</p>
+
+<p>　　3、将主机中已有 &ldquo;监控项&rdquo; 复制到新建的模板中</p>
+
+<p>　　　　　　1. 前往&rsquo;New host&rsquo;的监控项列表。在配置（Configuration） → 主机（Hosts），点击‘New host’旁边的监控项（Items）。</p>
+
+<p>　　　　　　2. 勾选要复制的监控项，下面会出现一个复制按钮，点击复制按钮，就可以到一个新页面，选择要关联的模板即可</p>
+
+<p>　　4、在新建的模板中 新建一个 &ldquo;应用集&rdquo;</p>
+
+<p>　　　　　　配置 &mdash;&ndash;&gt; 模板 &mdash;&ndash;&gt; &ldquo;找到要处理的模板&rdquo;并点击 &mdash;&ndash;&gt; 应用集 &mdash;&ndash;&gt; 创建应用集（填一个应用集名称即可）</p>
+
+<p>　　5、创建监控项</p>
+
+<p>　　　　　　配置 &mdash;&ndash;&gt; 模板 &mdash;&ndash;&gt; &ldquo;找到要处理的模板&rdquo;并点击 &mdash;&ndash;&gt; 监控项 &mdash;&ndash;&gt; 创建监控项（参考上面监控项创建方法）</p>
+
+<p>　　6、创建触发器</p>
+
+<p>　　　　　　配置 &mdash;&ndash;&gt; 模板 &mdash;&ndash;&gt; &ldquo;找到要处理的模板&rdquo;并点击 &mdash;&ndash;&gt; 触发器 &mdash;&ndash;&gt; 创建触发器（参考上面触发器创建方法）</p>
+
+<p>　　7、链接模版到主机</p>
+
+<p>　　　　　　</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>230 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-02-17 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/a10/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>saltstack 基本使用</span>
+			</a>
+			<a class="prev-post" href="/posts/j7/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>聚类的分类</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>

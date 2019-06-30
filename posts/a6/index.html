@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<meta name="theme-color" content="#494f5c">
+	<meta name="msapplication-TileColor" content="#494f5c">
+
+<meta itemprop="name" content="git常见报错解决方法">
+<meta itemprop="description" content="git常见报错解决方法 1、warning: LF will be replaced by CRLF in .idea/workspace.xml.
+　参考博客：https://www.cnblogs.com/helloHKTK/p/7351946.html
+　git config &ndash;global core.autocrlf true
+1.2 phabricator使用arc提交代码步骤 1、拉取服务器代码
+　注：提交代码之前，需先从服务器上面拉取代码，以防覆盖别人代码。
+　git pull origin moniotr-callback
+　2、查看当前工作目录树的工作修改状态
+　git status
+　1：Untracked: 未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.
+　2：Modified: 文件已修改, 仅仅是修改, 并没有进行其他的操作.
+　3：deleted： 文件已删除，本地删除，服务器上还没有删除.
+　4：renamed：
+　git reset HEAD res/tmp_query/query # 撤销指定文件修改
+　git checkout webApp/res/tmp_query/query # 放弃本地某个文件的修改
+　git diff &ndash;cached static/js/main.">
+
+
+<meta itemprop="datePublished" content="2019-02-15T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2019-02-15T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="156">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="git常见报错解决方法" />
+<meta property="og:description" content="git常见报错解决方法 1、warning: LF will be replaced by CRLF in .idea/workspace.xml.
+　参考博客：https://www.cnblogs.com/helloHKTK/p/7351946.html
+　git config &ndash;global core.autocrlf true
+1.2 phabricator使用arc提交代码步骤 1、拉取服务器代码
+　注：提交代码之前，需先从服务器上面拉取代码，以防覆盖别人代码。
+　git pull origin moniotr-callback
+　2、查看当前工作目录树的工作修改状态
+　git status
+　1：Untracked: 未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.
+　2：Modified: 文件已修改, 仅仅是修改, 并没有进行其他的操作.
+　3：deleted： 文件已删除，本地删除，服务器上还没有删除.
+　4：renamed：
+　git reset HEAD res/tmp_query/query # 撤销指定文件修改
+　git checkout webApp/res/tmp_query/query # 放弃本地某个文件的修改
+　git diff &ndash;cached static/js/main." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/posts/a6/" />
+<meta property="article:published_time" content="2019-02-15T00:00:00&#43;00:00"/>
+<meta property="article:modified_time" content="2019-02-15T00:00:00&#43;00:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="git常见报错解决方法"/>
+<meta name="twitter:description" content="git常见报错解决方法 1、warning: LF will be replaced by CRLF in .idea/workspace.xml.
+　参考博客：https://www.cnblogs.com/helloHKTK/p/7351946.html
+　git config &ndash;global core.autocrlf true
+1.2 phabricator使用arc提交代码步骤 1、拉取服务器代码
+　注：提交代码之前，需先从服务器上面拉取代码，以防覆盖别人代码。
+　git pull origin moniotr-callback
+　2、查看当前工作目录树的工作修改状态
+　git status
+　1：Untracked: 未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.
+　2：Modified: 文件已修改, 仅仅是修改, 并没有进行其他的操作.
+　3：deleted： 文件已删除，本地删除，服务器上还没有删除.
+　4：renamed：
+　git reset HEAD res/tmp_query/query # 撤销指定文件修改
+　git checkout webApp/res/tmp_query/query # 放弃本地某个文件的修改
+　git diff &ndash;cached static/js/main."/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>git常见报错解决方法</title>
+	<link rel="stylesheet" href="/css/style.min.568c54a56780af2a70c45272522247710b69dbfc080b315211fb98381e3796f8.css" integrity="sha256-VoxUpWeArypwxFJyUiJHcQtp2/wICzFSEfuYOB43lvg=">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="/">孙志奇的个人博客</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="/posts/">博客</a>
+				<a href="/about-hugo/">关于我</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://instagram.com/" target="_blank" rel="noopener me" title="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-instagram"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.5" y2="6.5"></line></svg></a><a href="https://github.com/" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="/posts/">博客</a></li>
+			<li><a href="/about-hugo/">关于我</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 15, 2019</span></div>
+				<h1>git常见报错解决方法</h1>
+			</header>
+			<div class="content">
+				
+
+<h1 id="git常见报错解决方法">git常见报错解决方法<a href="#git常见报错解决方法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>1、warning: LF will be replaced by CRLF in .idea/workspace.xml.</p>
+
+<p>　　　　　　参考博客：<a href="https://www.cnblogs.com/helloHKTK/p/7351946.html">https://www.cnblogs.com/helloHKTK/p/7351946.html</a></p>
+
+<p>　　　　　　git config &ndash;global core.autocrlf true</p>
+
+<p>1.2 phabricator使用arc提交代码步骤
+　　1、拉取服务器代码</p>
+
+<p>　　　　　　注：提交代码之前，需先从服务器上面拉取代码，以防覆盖别人代码。</p>
+
+<p>　　　　　　git pull origin moniotr-callback</p>
+
+<p>　　2、查看当前工作目录树的工作修改状态</p>
+
+<p>　　　　　　git status</p>
+
+<p>　　　　　　　　1：Untracked: 未跟踪, 此文件在文件夹中, 但并没有加入到git库, 不参与版本控制. 通过git add 状态变为Staged.</p>
+
+<p>　　　　　　　　2：Modified: 文件已修改, 仅仅是修改, 并没有进行其他的操作.</p>
+
+<p>　　　　　　　　3：deleted： 文件已删除，本地删除，服务器上还没有删除.</p>
+
+<p>　　　　　　　　4：renamed：</p>
+
+<p>　　　　　　git reset HEAD   res/tmp_query/query              # 撤销指定文件修改</p>
+
+<p>　　　　　　git checkout webApp/res/tmp_query/query        #  放弃本地某个文件的修改</p>
+
+<p>　　　　　　git diff &ndash;cached  static/js/main.js                      # 比较暂存区与最新本地版本库（本地库中最近一次commit的内容）</p>
+
+<p>　　3、将状态改变的代码提交至缓存</p>
+
+<p>　　　　　　　　git add + 文件
+　　　　　　　　git add -u + 路径：将修改过的被跟踪代码提交缓存
+　　　　　　　　git add -A + 路径: 将修改过的未被跟踪的代码提交至缓存</p>
+
+<p>　　　　　　　　git stash -u -k        # 忽略其他，关键一步</p>
+
+<p>　　　　　　　　例如：</p>
+
+<p>　　　　　　　　　　1）将 vpaas-frontend/src/components 目录下被跟踪的已修改过的代码提交到缓存中</p>
+
+<p>　　　　　　　　　　　　　　git add -u vpaas-frontend/src/components</p>
+
+<p>　　　　　　　　　　2）将 vpaas-frontend/src/components 目录下未被跟踪的已修改过的代码提交到缓存中</p>
+
+<p>　　　　　　　　　　　　　　git add -A vpaas-frontend/src/components</p>
+
+<p>　　4、将代码提交到本地仓库中</p>
+
+<p>　　　　　　git commit -m “注释部分 ref T3070”</p>
+
+<p>　　5、将本次commit 发送给Phabricator指定人员审核</p>
+
+<p>　　　　　　arc diff            # 提交默认diff</p>
+
+<p>　　　　　　arc diff 时会提示让你指定 Reviewers,意思是本次diff能让谁进行审核
+　　　　　　你必须指定至少一人来审核你的本次提交,例如你的项目负责人,在Phabricator平台的&rdquo;People&rdquo;栏目里可以看到所有成员的名字</p>
+
+<p>　　6、将代码推送到服务器</p>
+
+<p>　　　　　　git push</p>
+
+<p>　　　　　　arc land 　　　　# 提交代码，删除该分支 or 使用 git push（等价于 git push）</p>
+
+<p>　　7、回滚</p>
+
+<p>　　　　1）误将代码提交到缓存中（利用 git add 命令误将代码提交的缓存中）</p>
+
+<p>　　　　　　　　git reset d98947726bc454fa5265b2e16645</p>
+
+<p>　　　　　　　　# 回退一个版本,且会将暂存区的内容和本地已提交的内容全部恢复到未暂存的状态,不影响原来本地文件(未提交的也 不受影响)</p>
+
+<p>　　　　2）误将代码提交到本地仓库（利用 git commit 命令误将代码提交到本地仓库）</p>
+
+<p>　　　　　　　　1. 回退一个版本,不清空暂存区,将已提交的内容恢复到暂存区,不影响原来本地的文件(未提交的也不受影响)</p>
+
+<p>　　　　　　　　　　　　git reset &ndash;soft + 版本号</p>
+
+<p>　　　　　　　　2. 彻底回退到某个版本，本地的代码也会改变上一个版本内容。</p>
+
+<p>　　　　　　　　　　　　git reset &ndash;hard + 版本号</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>156 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-02-15 08:00 &#43;0800</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="/posts/a8/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>安装zabbix server</span>
+			</a>
+			<a class="prev-post" href="/posts/j6/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>数据的预处理</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="/">孙志奇</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="/js/main.min.35ccbf1cdceb91e4c64c06b5d009d6e2977fafe56beda7762febd4e67528d2ac.js" integrity="sha256-Ncy/HNzrkeTGTAa10AnW4pd/r+Vr7ad2L+vU5nUo0qw="></script>
+
+</body>
+
+</html>
